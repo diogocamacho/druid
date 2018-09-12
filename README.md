@@ -1,2 +1,1 @@
-# druid
-DRUg Indication Discovery
+# DRUID: DRUg Indication Discoverer
