@@ -5,15 +5,21 @@ DRUID, or DRUg Indication Discoverer, is an algorithm that identifies drug profi
 ## Term frequency and inverse document frequency
 At the core, DRUID builds on the notions of natural language processing and text mining, and the concepts of term frequency and inverse document frequency.  Briefly, given a corpus of documents, the term frequency (tf) and the inverse document frequency (idf) of any given word is given by:
 
-\[tf_{w, d} = \frac{word w in document d}{total number of words in document d}\]
+\[
+tf_{w, d} = \frac{word w in document d}{total number of words in document d}
+\]
 
 and 
 
-\[idf_{w, D} = log(\frac{N}{|\{w \in D : w \in d\}|})\]
+\[
+idf_{w, D} = log(\frac{N}{|\{w \in D : w \in d\}|})
+\]
 
-where N is the total number of documents in the corpus, $|\{w \in D : w \in d\}|$ is the number of documents where the term w appears, and d is a given document.  From this comes that 
+where N is the total number of documents in the corpus, \[|\{w \in D : w \in d\}|\] is the number of documents where the term w appears, and d is a given document.  From this comes that 
 
-\[tfidf_{w, d, D} = tf_{w, d} * idf_{w, D}\]
+\[
+tfidf_{w, d, D} = tf_{w, d} * idf_{w, D}
+\]
 
 We have taken this concept to explore the identification of drugs (ie, drug profiles) to match a given phenotypic profile of interest.  
 
@@ -22,14 +28,18 @@ Consider a gene expression profile for a disease of interest.  Also, let's consi
 
 Because drugs can have promiscuous effects on genes, we calculate 2 tf-idf matrices: one on the DxG space, and one in the GxD space.  These corrections account for the promiscuity of both genes (DxG matrix) and drugs (GxD space) and a corrected tf-idf matrix can be computed:
 
-\[ctfidf = tfidf_{DxG} x tfidf_{GxD}\]
+\[
+ctfidf = tfidf_{DxG} x tfidf_{GxD}
+\]
 
 ## DRUID
 Now that the tf-idf matrix is defined, a similarity between a phenotype of interest and our compendium/corpus can be computed using a simple vector similarity.  Implemented in DRUID is a cosine similarity between the query vector and any given corpus vector (drug profile).  In order to assess the significance of a similarity score, we also define a set of random vectors of the same size as our query vector, to quantify the probability of the query vector similarity being better than a random similarity.  Finally, a DRUID score for any given drug is calculated taking into account all of these terms:
 
-\[DS_{d} = 1 + \frac{cs_{d}}{max(cs)} - log10(random_p)\]
+\[
+DS_{d} = 1 + \frac{cs_{d}}{max(cs)} - log10(random_p)
+\]
 
-As can easily be seen, the DRUID score (DS) has a lower bound of 1 and an upper bound of \[2 + log10(random_sets)\]. 
+As can easily be seen, the DRUID score (DS) has a lower bound of 1 and an upper bound of 2 + log10(random_sets). 
 
 ## Considerations
 DRUID is built agnostically, which implies that any given omics data type can be used, though there needs to be consistency between the query vector and the compendium.
