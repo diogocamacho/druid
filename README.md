@@ -9,3 +9,6 @@ Install from GitHub using `devtools` as:
 ```
 devtools::instal_github("diogocamacho/druid")
 ```
+
+## Running
+DRUID builds on the concepts of term frequency and inverse document frequency from natural language processing. 
