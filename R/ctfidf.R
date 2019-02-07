@@ -4,7 +4,7 @@
 #' This matrix is a DxT matrix, where D is the set of conditions (disease indications) T are the genes affecting that condition.
 #' To correct effect/prevalence of genes in a given condition or to correct conditions affected by many genes, we compute the tf-idf matrix twice, to get the combined tf-idf: 
 #' 
-#' ctfidf <- tfidf(dtm) * t(tfidf(dtm))
+#' \eqn{ctfidf = tfidf(dtm) \times t(tfidf(dtm))}
 #' 
 #' @param data_matrix Sparse document-term matrix (condition by gene matrix), named (rows and columns)
 #' @return A sparse matrix with the computed combined tf-idf
