@@ -1,0 +1,17 @@
+Package: DRUID
+Title: Drug Indication Discoverer
+Version: 1.0.0
+Authors@R: person("Diogo", "Camacho", email = "diogo.camacho@wyss.harvard.edu", role = c("aut", "cre"))
+Description: Identification of optimal indication for a given drug.  The algorithm takes in a drug expression profile of interest and outputs a ranked list of potential indications for that drug.
+License: GPL-3 + file LICENSE
+Depends: R (>= 3.4.0), 
+  tidytext,
+  dplyr,
+  tibble,
+  Matrix
+Encoding: UTF-8
+LazyData: true
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
