@@ -58,7 +58,7 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   message("Building results data frame...")
   res <- data_frame(cosine_similarity = as.vector(query_similarities),
                     probability_random = prandom,
-                    druid_score = dscore)
+                    druid_score = as.vector(dscore))
   
   # count number of matches to query vector
   tt <- colnames(tfidf_matrix)[which(query_vector != 0)]
