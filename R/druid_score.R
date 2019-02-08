@@ -8,7 +8,7 @@
 #' @param target_tfidf Pathway tf-idf matrix.
 #' @param tfidf_crossprod_mat Cross-product matrix for pathway tf-idf.
 #' @return A vector of random probabilities for each pathway given the gene set size.
-druid_score <- function(similarity_results, random_probabilities) {
+druid_score <- function(similarity_results, random_probabilities, num_random) {
   score <- 1 + (similarity_results / max(similarity_results))  + (-log10(random_probabilities))
   score[random_probabilities == 0] <- 1 + (similarity_results[random_probabilities == 0] / max(similarity_results)) - log10(1 / num_random)
   return(score)
