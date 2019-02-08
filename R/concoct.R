@@ -23,10 +23,10 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   message("| Diogo M. Camacho, Ph.D.                      |")
   message("| Wyss Institute @ Harvard University          |")
   message("+----------------------------------------------+")
-  message("\n")
+  message("")
   
+  # run checks ----
   message("Checks and balances...")
-  # run checks
   if(missing(dge_matrix)) stop("Need differential expression data.")
   if(missing(tfidf_matrix)) stop("Need tf-idf matrix.")
   if(missing(tfidf_crossproduct)) stop("Need cross-product vector.")
@@ -37,8 +37,7 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   if(missing(fold_thr)) fold_thr <- 0
   if(missing(pvalue_thr)) pvalue_thr <- 0.05
   
-  # generate query vector
-  # query_vector <- matrix(0,ncol=ncol(sparse_tfidf),nrow=1)
+  # generate query vector ----
   message("Generating query vector...")
   query_vector <- druid_geneset(dge_matrix = dge_matrix, 
                                 desired_effect = druid_direction, 
@@ -47,13 +46,13 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
                                 entrez = entrez, 
                                 gene_space = colnames(tfidf_matrix))
 
-  # compute cosine similarities against query vector
+  # compute cosine similarities against query vector ----
   message("Computing cosine similarity on query vector...")
   query_similarities <- cosine_similarity(tfidf_matrix = tfidf_matrix,
                                           query_vector = query_vector,
                                           tfidf_crossprod_mat = tfidf_crossproduct)
   
-  # random probabilities
+  # random probabilities ----
   message("Computing cosine similarity on random vectors...")
   prandom <- random_probability(similarity_results = query_similarities,
                                 gs_size = sum(query_vector),
@@ -61,11 +60,11 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
                                 target_tfidf = tfidf_matrix,
                                 tfidf_crossprod_mat = tfidf_crossproduct)
   
-  # DRUID Score
+  # DRUID Score ----
   message("Computing cosine similarity on random vectors...")
   dscore <- druid_score(similarity_results = query_similarities, random_probabilities = prandom, num_random = num_random)
   
-  # results
+  # results ----
   message("Building results data frame...")
   res <- data_frame(cosine_similarity = as.vector(query_similarities),
                     probability_random = prandom,
