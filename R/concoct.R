@@ -52,7 +52,7 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   
   # DRUID Score
   message("Computing cosine similarity on random vectors...")
-  dscore <- druid_score(similarity_results = query_similarities, random_probabilities = prandom)
+  dscore <- druid_score(similarity_results = query_similarities, random_probabilities = prandom, num_random = num_random)
   
   # results
   message("Building results data frame...")
