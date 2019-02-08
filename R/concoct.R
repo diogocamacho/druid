@@ -16,6 +16,16 @@
 #' @return A data frame.
 concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, druid_direction, fold_thr, pvalue_thr, entrez)
 {
+  message("\014")
+  message("+----------------------------------------------+")
+  message("| DRUID: Drug Indication Discoverer            |")
+  message("|                                              |")
+  message("| Diogo M. Camacho, Ph.D.                      |")
+  message("| Wyss Institute @ Harvard University          |")
+  message("+----------------------------------------------+")
+  message("\n\n\n")
+  
+  message("Checks and balances...")
   # run checks
   if(missing(dge_matrix)) stop("Need differential expression data.")
   if(missing(tfidf_matrix)) stop("Need tf-idf matrix.")
@@ -29,6 +39,7 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   
   # generate query vector
   # query_vector <- matrix(0,ncol=ncol(sparse_tfidf),nrow=1)
+  message("Generating query vector...")
   query_vector <- druid_geneset(dge_matrix = dge_matrix, 
                                 desired_effect = druid_direction, 
                                 fold_thr = fold_thr, 
@@ -67,7 +78,7 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   res <- res %>% 
     tibble::add_column(., number_matches = t2, .before = 1)
   
-  
+  message("DONE.")
   return(res)
   
 }
