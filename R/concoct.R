@@ -23,7 +23,7 @@ concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, dr
   message("| Diogo M. Camacho, Ph.D.                      |")
   message("| Wyss Institute @ Harvard University          |")
   message("+----------------------------------------------+")
-  message("\n\n\n")
+  message("\n")
   
   message("Checks and balances...")
   # run checks
