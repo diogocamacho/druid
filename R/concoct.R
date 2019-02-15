@@ -16,24 +16,24 @@
 #' @return A data frame.
 concoct <- function(dge_matrix, tfidf_matrix, tfidf_crossproduct, num_random, druid_direction, fold_thr, pvalue_thr, entrez)
 {
-  message("\014")
-  message("+----------------------------------------------+")
-  message("| DRUID: Drug Indication Discoverer            |")
-  message("|                                              |")
-  message("| Diogo M. Camacho, Ph.D.                      |")
-  message("| Wyss Institute @ Harvard University          |")
-  message("+----------------------------------------------+")
-  message("")
+  # message("\014")
+  # message("+----------------------------------------------+")
+  # message("| DRUID: Drug Indication Discoverer            |")
+  # message("|                                              |")
+  # message("| Diogo M. Camacho, Ph.D.                      |")
+  # message("| Wyss Institute @ Harvard University          |")
+  # message("+----------------------------------------------+")
+  # message("")
+  message("--- Concocting with DRUID ---")
   
   # run checks ----
   message("Checks and balances...")
   if(missing(dge_matrix)) stop("Need differential expression data.")
-  if(missing(tfidf_matrix)) stop("Need tf-idf matrix.")
+  if(ncol(dge_matrix) != 2) stop("Differential expression data needs to be Nx2 matrix.")
+  if(missing(tfidf_matrix)) stop("Need TF-IDF matrix.")
   if(missing(tfidf_crossproduct)) stop("Need cross-product vector.")
   if(missing(druid_direction)) druid_direction <- "neg"
   if(missing(num_random)) num_random <- 1000
-  if(ncol(dge_matrix) != 2) stop("Differential expression data needs to be Nx2 matrix.")
-  if(missing(druid_direction)) druid_direction <- "neg"
   if(missing(fold_thr)) fold_thr <- 0
   if(missing(pvalue_thr)) pvalue_thr <- 0.05
   
