@@ -7,13 +7,14 @@ DRUID, or DRUg Indication Discoverer, is an algorithm that identifies drug profi
 Install from GitHub using `devtools` as:
 
 ```
-devtools::instal_github("diogocamacho/druid")
+devtools::install_github("diogocamacho/druid")
 ```
 
 ## Running
 The easiest way to run DRUID is to use its wrapper `concoct` as:
 
 ```
+library(DRUID)
 res <- concoct(dge_matrix, tfidf_matrix, crossproduct_vector, number_random, effect_direction, fold_thr, pvalue_thr, entrez_ids)
 ```
 
@@ -38,7 +39,14 @@ With the generated query matrix, we can now run DRUID on it using the `concoct` 
 example_druid <- concoct(dge_matrix = query_matrix, tfidf_matrix = DRUID::cmap_druid$tfidf, tfidf_crossproduct = DRUID::cmap_druid$cpm, num_random = 10000, druid_direction = "neg", fold_thr = 0, pvalue_thr = 0.05, entrez = gset)
 ```
 
-The output of DRUID is a data frame with all the scores for all the drugs.  We can expand this data frame using `magrittr` and `tibble`:
+The output of DRUID is a `tibble` data frame with all the scores for all the drugs.  Specifically, the columns in this data frame are:
+
+  * number_matches: number of genes in query signature found in drug signature;
+  * cosine_similarity: similarity of query signature to drug signature;
+  * probability_random: probability of cosine similarity being better than random;
+  * druid_score: calculated DRUID score, taking into account the cosine similarity and the random probability.
+  
+We can expand this data frame using `magrittr` and `tibble` together with the information on the drugs as:
 
 ```
 example_druid <- example_druid %>% 
@@ -71,5 +79,3 @@ and the corresponding cross-product vector as:
 ```
 ex_cp <- crossprod_matrix(ex_tfidf)
 ```
-
-With these generated, these can be used to run DRUID via the `concoct` wrapper. 
