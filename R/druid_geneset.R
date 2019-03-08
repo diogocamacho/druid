@@ -29,20 +29,35 @@ druid_geneset <- function(dge_matrix,
     dge_matrix[, 1] <- -1 * dge_matrix[, 1]
   }
 
-  a2 <- which(dge_matrix[, 1] > 0)
-  a3 <- which(dge_matrix[, 1] < 0)
+  up_genes <- which(dge_matrix[, 1] > 0)
+  down_genes <- which(dge_matrix[, 1] < 0)
   gs_dir <- character(length = nrow(dge_matrix))
-  gs_dir[a2] <- "up"
-  gs_dir[a3] <- "down"
+  gs_dir[up_genes] <- "up"
+  gs_dir[down_genes] <- "down"
   gs_eff <- paste(entrez, gs_dir) # <--- entrez with direction
   
-  x1 <- which(abs(dge_matrix[, 1]) > fold_thr & dge_matrix[, 2] < pvalue_thr)
+  # check differential expression ----
+  b1 <- which(abs(dge_matrix[, 1]) > fold_thr)
+  b2 <- which(dge_matrix[, 2] < pvalue_thr)
+  
+  if(length(b2) == 0) {
+    stop("No differentially expressed genes at this p-value threshold.")
+  } 
+  
+  if(length(b1) == 0 & fold_thr != 0) {
+    message("Fold threshold yielded no differentially expressed genes. Setting to threshold to 0.")
+    b1 <- which(abs(dge_matrix[, 1]) != 0)
+  }
+  
+  x1 <- intersect(b1, b2)
+  if (length(x1) == 0) stop("No differentially expressed genes.")
+  
   x2 <- gs_eff[x1]
   
-  # query vector
+  # query vector ----
   query_vector[which(gene_space %in% x2)] <- 1
   qsize <- sum(query_vector)
-  if(qsize == 0) stop("No genes in gene set.")
+  if(qsize == 0) stop("No genes macthed in drug profiles.")
   
   return(query_vector)
 }
