@@ -1,9 +1,9 @@
 #' concoct: DRUID wrapper
 #'
-#' This function is a wrapper for a start to finish to identify drugs/frug profiles that mimic or revert a given profile of interest.
-#' For a given gene set of interest, the algorithm will compute the cosine similarity between this vector and the gene sets in a given collection of pathways (for example, KEGG pathways.)
-#' Additionally, the algorithm will generate a set of random gene sets that will be used to determine the probability of a given enrichment being random.
-#' The output of the wrapper is a tidy data frame with all the enrichment scores that are better than 0.
+#' This function is a wrapper for a start to finish to identify drugs/drug profiles that mimic or revert a given profile of interest.
+#' For a given gene set of interest, the algorithm will compute the cosine similarity between this vector and the gene sets in a given collection of drug profiles.
+#' Additionally, the algorithm will generate a set of random gene sets that will be used to determine the probability of a given profile similarity being random.
+#' The output of the wrapper is a data frame with all the (unranked) DRUID scores.
 #'
 #' @param dge_matrix This is a 2 column matrix for gene expression changes, where column 1 is the gene fold change and column 2 is the corresponding p-value for the fold change. NOTE: Use log2 of the fold changes as output, for example, from `limma` or `DESeq2`.
 #' @param tfidf_matrix tf-idf matrix drug-gene matrix. Column names are Entrez IDs. Computed with \code{\link{ctfidf}}
