@@ -9,20 +9,15 @@
 cosine_similarity <- function(query_vector, tfidf_matrix, tfidf_crossprod_mat) {
   
   if(class(query_vector) == "matrix") {
-    
     x2 <- tcrossprod(query_vector) # <-- query_vector is a 1xG vector  
-    x3 <- sqrt(tfidf_crossprod_mat * as.vector(x2))
     y1 <- tfidf_matrix %*% t(query_vector)
-    cs <- y1 / x3 # <-- cosine similarity
-    
   } else if(class(query_vector) == "numeric") {
-    
     x2 <- crossprod(query_vector) # <-- query_vector is a 1xG vector
-    x3 <- sqrt(tfidf_crossprod_mat * as.vector(x2))
     y1 <- tfidf_matrix %*% query_vector
-    cs <- y1 / x3 # <-- cosine similarity
-    
   }
+  
+  x3 <- sqrt(tfidf_crossprod_mat * as.vector(x2))
+  cs <- y1 / x3 # <-- cosine similarity
   
   return(cs)
   
