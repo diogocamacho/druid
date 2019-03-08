@@ -28,6 +28,7 @@ concoct <- function(dge_matrix,
   if(missing(dge_matrix)) stop("Need differential expression data.")
   if(ncol(dge_matrix) != 2) stop("Differential expression data needs to be Nx2 matrix.")
   if(missing(tfidf_matrix)) stop("Need TF-IDF matrix.")
+  if(class(tfidf_matrix) != "dgCMatrix" | class(tfidf_matrix) != "matrix") stop("TF-IDF matrix is of wrong type. Please revise.")
   if(sum(tfidf_matrix) == 0) stop("Stopping: TF-IDF matrix is zero. Please revise.")
   # if(missing(tfidf_crossproduct)) stop("Need cross-product vector.")
   if(missing(druid_direction)) druid_direction <- "neg"
