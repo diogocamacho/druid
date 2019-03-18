@@ -12,77 +12,116 @@
 #' @param fold_thr Threshold for the fold change to be considered. Defaults to 0 (i.e., log2(1), where fold change is not used as filter)
 #' @param pvalue_thr Threshold for the p-value of the fold change to be considered. Defaults to 0.05.
 #' @param entrez EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
-#' @return A data frame.
+#' @return A data frame that is sorted on the DRUID score.
 concoct <- function(dge_matrix, 
-                    tfidf_matrix, 
+                    # tfidf_matrix, 
                     num_random, 
                     druid_direction, 
                     fold_thr, 
                     pvalue_thr, 
                     entrez)
 {
-  message("--- Concocting with DRUID ---")
-  
   # run checks ----
   message("Checks and balances...")
   if(missing(dge_matrix)) stop("Need differential expression data.")
   if(ncol(dge_matrix) != 2) stop("Differential expression data needs to be Nx2 matrix.")
-  if(missing(tfidf_matrix)) stop("Need TF-IDF matrix.")
-  if(class(tfidf_matrix) != "dgCMatrix" | class(tfidf_matrix) != "matrix") stop("TF-IDF matrix is of wrong type. Please revise.")
-  if(sum(tfidf_matrix) == 0) stop("Stopping: TF-IDF matrix is zero. Please revise.")
+  # if(missing(tfidf_matrix)) stop("Need TF-IDF matrix.")
+  # if(class(tfidf_matrix) != "dgCMatrix" | class(tfidf_matrix) != "matrix") stop("TF-IDF matrix is of wrong type. Please revise.")
+  # if(sum(tfidf_matrix) == 0) stop("Stopping: TF-IDF matrix is zero. Please revise.")
   # if(missing(tfidf_crossproduct)) stop("Need cross-product vector.")
   if(missing(druid_direction)) druid_direction <- "neg"
   if(missing(num_random)) num_random <- 1000
   if(missing(fold_thr)) fold_thr <- 0
   if(missing(pvalue_thr)) pvalue_thr <- 0.05
+ 
+  message("--- Concocting with DRUID ---")
+  message("")
   
-  # generate query vector ----
-  message("Generating query vector...")
-  query_vector <- druid_geneset(dge_matrix = dge_matrix, 
-                                desired_effect = druid_direction, 
-                                fold_thr = fold_thr, 
-                                pvalue_thr = pvalue_thr, 
-                                entrez = entrez, 
-                                gene_space = colnames(tfidf_matrix))
+  druid_data <- compendium_selection()
+  message("") 
+
+  if (druid_data == 1) {
+    message(":: Running DRUID on CMAP data ::")
+    res <- cmap_druid(dge_matrix = dge_matrix, 
+                      druid_direction = druid_direction, 
+                      fold_thr = fold_thr, 
+                      pvalue_thr = pvalue_thr, 
+                      entrez = entrez, 
+                      num_random = num_random)
+  } else if (druid_data == 2) { 
+    message(":: Running DRUID on LINCS data ::")
+    res <- lincs_druid(dge_matrix = dge_matrix, 
+                       druid_direction = druid_direction, 
+                       fold_thr = fold_thr, 
+                       pvalue_thr = pvalue_thr, 
+                       entrez = entrez, 
+                       num_random = num_random)
+  }  else if (druid_data == 3) {
+    message(":: Running DRUID on CTD data ::")
+    res <- ctd_druid(dge_matrix = dge_matrix, 
+                     druid_direction = druid_direction, 
+                     fold_thr = fold_thr, 
+                     pvalue_thr = pvalue_thr, 
+                     entrez = entrez, 
+                     num_random = num_random)
+  } else if (druid_data == 4) {
+    message(":: Running DRUID on small molecule screen data ::")
+    res <- sm_druid(dge_matrix = dge_matrix, 
+                    druid_direction = druid_direction, 
+                    fold_thr = fold_thr, 
+                    pvalue_thr = pvalue_thr, 
+                    entrez = entrez, 
+                    num_random = num_random)
+  } else if (druid_data == 5) {
+    message(":: Running DRUID on TCM natural products data ::")
+    res <- np_druid(dge_matrix = dge_matrix, 
+                    druid_direction = druid_direction, 
+                    fold_thr = fold_thr, 
+                    pvalue_thr = pvalue_thr, 
+                    entrez = entrez, 
+                    num_random = num_random)
+  } else if(druid_data == 6) {
+    message(":: Running DRUID on all data sets ::")
+    message("!!Warning: depending on processor speed, this could take a while. Go get a coffee or something.")
+    message("")
+    res1 <- cmap_druid(dge_matrix = dge_matrix, 
+                              druid_direction = druid_direction, 
+                              fold_thr = fold_thr, 
+                              pvalue_thr = pvalue_thr, 
+                              entrez = entrez, 
+                              num_random = num_random)
+    
+    res2 <- lincs_druid(dge_matrix = dge_matrix, 
+                       druid_direction = druid_direction, 
+                       fold_thr = fold_thr, 
+                       pvalue_thr = pvalue_thr, 
+                       entrez = entrez, 
+                       num_random = num_random)
+
+    res3 <- ctd_druid(dge_matrix = dge_matrix, 
+                     druid_direction = druid_direction, 
+                     fold_thr = fold_thr, 
+                     pvalue_thr = pvalue_thr, 
+                     entrez = entrez, 
+                     num_random = num_random)
   
-  # compute crossproduct of tf-idf matrix ----
-  message("Computing cross-product of TF-IDF matrix...")
-  cpm <- crossprod_matrix(tfidf_matrix = tfidf_matrix)
-  if(sum(cpm) == 0) stop("Stopping: Cross-product of TF-IDF matrix is 0.")
+    res4 <- sm_druid(dge_matrix = dge_matrix, 
+                    druid_direction = druid_direction, 
+                    fold_thr = fold_thr, 
+                    pvalue_thr = pvalue_thr, 
+                    entrez = entrez, 
+                    num_random = num_random)
   
-  # compute cosine similarities against query vector ----
-  message("Computing cosine similarity on query vector...")
-  query_similarities <- cosine_similarity(tfidf_matrix = tfidf_matrix,
-                                          query_vector = query_vector,
-                                          tfidf_crossprod_mat = cpm)
-  
-  # random probabilities ----
-  message("Computing cosine similarity on random vectors...")
-  prandom <- random_probability(similarity_results = query_similarities,
-                                gs_size = sum(query_vector),
-                                num_sets = num_random,
-                                target_tfidf = tfidf_matrix,
-                                tfidf_crossprod_mat = cpm)
-  
-  # DRUID Score ----
-  message("Computing cosine similarity on random vectors...")
-  dscore <- druid_score(similarity_results = query_similarities, 
-                        random_probabilities = prandom, 
-                        num_random = num_random)
-  
-  # results ----
-  message("Building results data frame...")
-  res <- tibble(cosine_similarity = as.vector(query_similarities),
-                    probability_random = prandom,
-                    druid_score = as.vector(dscore))
-  
-  # count number of matches to query vector
-  tt <- colnames(tfidf_matrix)[which(query_vector != 0)]
-  t2 <- apply(tfidf_matrix, 1, function(y) length(intersect(tt, names(which(y != 0)))))
-  
-  res <- res %>% 
-    tibble::add_column(., number_matches = t2, .before = 1)
-  
+    res5 <- np_druid(dge_matrix = dge_matrix, 
+                    druid_direction = druid_direction, 
+                    fold_thr = fold_thr, 
+                    pvalue_thr = pvalue_thr, 
+                    entrez = entrez, 
+                    num_random = num_random)
+    
+    res <- dplyr::bind_rows(res1, res2, res3, res4, res5)
+  }
+
   message("DONE.")
   return(res)
   
