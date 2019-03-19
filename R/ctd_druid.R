@@ -42,7 +42,7 @@ ctd_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
     tibble::add_column(., number_matches = t2, .before = 1)
   
   res <- res %>% 
-    tibble::add_column(., drug_name = cauldron::druid_potion$ctd$drugs, .before = 1) %>%
+    tibble::add_column(., drug_name = as.character(cauldron::druid_potion$ctd$drugs$drug_name), .before = 1) %>%
     tibble::add_column(., concentration = NA, .before = 2) %>%
     tibble::add_column(., cell_line = NA, .before = 3) %>%
     tibble::add_column(., data_source = "ctd", .before = 1) %>%
