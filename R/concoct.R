@@ -84,6 +84,7 @@ concoct <- function(dge_matrix,
     message(":: Running DRUID on all data sets ::")
     message("!!Warning: depending on processor speed, this could take a while. Go get a coffee or something.")
     message("")
+    message("CMAP data...")
     res1 <- cmap_druid(dge_matrix = dge_matrix, 
                               druid_direction = druid_direction, 
                               fold_thr = fold_thr, 
@@ -91,6 +92,8 @@ concoct <- function(dge_matrix,
                               entrez = entrez, 
                               num_random = num_random)
     
+    message("")
+    message("LINCS data...")
     res2 <- lincs_druid(dge_matrix = dge_matrix, 
                        druid_direction = druid_direction, 
                        fold_thr = fold_thr, 
@@ -98,13 +101,17 @@ concoct <- function(dge_matrix,
                        entrez = entrez, 
                        num_random = num_random)
 
+    message("")
+    message("CTD data...")
     res3 <- ctd_druid(dge_matrix = dge_matrix, 
                      druid_direction = druid_direction, 
                      fold_thr = fold_thr, 
                      pvalue_thr = pvalue_thr, 
                      entrez = entrez, 
                      num_random = num_random)
-  
+    
+    message("")
+    message("Small molecules screen data...")
     res4 <- sm_druid(dge_matrix = dge_matrix, 
                     druid_direction = druid_direction, 
                     fold_thr = fold_thr, 
@@ -112,6 +119,8 @@ concoct <- function(dge_matrix,
                     entrez = entrez, 
                     num_random = num_random)
   
+    message("")
+    message("TCM natural products data...")
     res5 <- np_druid(dge_matrix = dge_matrix, 
                     druid_direction = druid_direction, 
                     fold_thr = fold_thr, 
@@ -119,7 +128,12 @@ concoct <- function(dge_matrix,
                     entrez = entrez, 
                     num_random = num_random)
     
-    res <- dplyr::bind_rows(res1, res2, res3, res4, res5)
+    res <- dplyr::bind_rows(res1,
+                            res2,
+                            res3,
+                            res4,
+                            res5)
+    
   }
 
   message("DONE.")
