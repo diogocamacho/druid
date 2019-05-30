@@ -40,100 +40,33 @@ concoct <- function(dge_matrix,
   druid_data <- compendium_selection()
   message("") 
 
-  if (druid_data == 1) {
-    message(":: Running DRUID on CMAP data ::")
-    res <- cmap_druid(dge_matrix = dge_matrix, 
-                      druid_direction = druid_direction, 
-                      fold_thr = fold_thr, 
-                      pvalue_thr = pvalue_thr, 
-                      entrez = entrez, 
-                      num_random = num_random)
-  } else if (druid_data == 2) { 
-    message(":: Running DRUID on LINCS data ::")
-    res <- lincs_druid(dge_matrix = dge_matrix, 
-                       druid_direction = druid_direction, 
-                       fold_thr = fold_thr, 
-                       pvalue_thr = pvalue_thr, 
-                       entrez = entrez, 
-                       num_random = num_random)
-  }  else if (druid_data == 3) {
-    message(":: Running DRUID on CTD data ::")
-    res <- ctd_druid(dge_matrix = dge_matrix, 
+  if (druid_data != 6) {
+    message(paste("Running DRUID on the", names(cauldron::druid_potion)[druid_data], "dataset"))
+    res <- run_druid(dge_matrix = dge_matrix, 
                      druid_direction = druid_direction, 
                      fold_thr = fold_thr, 
                      pvalue_thr = pvalue_thr, 
                      entrez = entrez, 
-                     num_random = num_random)
-  } else if (druid_data == 4) {
-    message(":: Running DRUID on small molecule screen data ::")
-    res <- sm_druid(dge_matrix = dge_matrix, 
-                    druid_direction = druid_direction, 
-                    fold_thr = fold_thr, 
-                    pvalue_thr = pvalue_thr, 
-                    entrez = entrez, 
-                    num_random = num_random)
-  } else if (druid_data == 5) {
-    message(":: Running DRUID on TCM natural products data ::")
-    res <- np_druid(dge_matrix = dge_matrix, 
-                    druid_direction = druid_direction, 
-                    fold_thr = fold_thr, 
-                    pvalue_thr = pvalue_thr, 
-                    entrez = entrez, 
-                    num_random = num_random)
-  } else if(druid_data == 6) {
+                     num_random = num_random, 
+                     selection = druid_data)
+  } else { 
     message(":: Running DRUID on all data sets ::")
     message("!!Warning: depending on processor speed, this could take a while. Go get a coffee or something.")
     message("")
-    message("CMAP data...")
-    res1 <- cmap_druid(dge_matrix = dge_matrix, 
-                              druid_direction = druid_direction, 
-                              fold_thr = fold_thr, 
-                              pvalue_thr = pvalue_thr, 
-                              entrez = entrez, 
-                              num_random = num_random)
     
-    message("")
-    message("LINCS data...")
-    res2 <- lincs_druid(dge_matrix = dge_matrix, 
-                       druid_direction = druid_direction, 
-                       fold_thr = fold_thr, 
-                       pvalue_thr = pvalue_thr, 
-                       entrez = entrez, 
-                       num_random = num_random)
-
-    message("")
-    message("CTD data...")
-    res3 <- ctd_druid(dge_matrix = dge_matrix, 
-                     druid_direction = druid_direction, 
-                     fold_thr = fold_thr, 
-                     pvalue_thr = pvalue_thr, 
-                     entrez = entrez, 
-                     num_random = num_random)
-    
-    message("")
-    message("Small molecules screen data...")
-    res4 <- sm_druid(dge_matrix = dge_matrix, 
-                    druid_direction = druid_direction, 
-                    fold_thr = fold_thr, 
-                    pvalue_thr = pvalue_thr, 
-                    entrez = entrez, 
-                    num_random = num_random)
-  
-    message("")
-    message("TCM natural products data...")
-    res5 <- np_druid(dge_matrix = dge_matrix, 
-                    druid_direction = druid_direction, 
-                    fold_thr = fold_thr, 
-                    pvalue_thr = pvalue_thr, 
-                    entrez = entrez, 
-                    num_random = num_random)
-    
-    res <- dplyr::bind_rows(res1,
-                            res2,
-                            res3,
-                            res4,
-                            res5)
-    
+    res <- vector(mode = "list", length = 5)
+    for (i in seq(1, 5)) {
+      message(paste("Running DRUID on the", names(cauldron::druid_potion)[i], "dataset"))
+      res[[i]] <- run_druid(dge_matrix = dge_matrix, 
+                            druid_direction = druid_direction, 
+                            fold_thr = fold_thr, 
+                            pvalue_thr = pvalue_thr, 
+                            entrez = entrez, 
+                            num_random = num_random, 
+                            selection = i)
+      message("")
+    }
+    res <- dplyr::bind_rows(res)
   }
 
   message("DONE.")
