@@ -4,7 +4,7 @@
 \alias{druid_score}
 \title{DRUID Score}
 \usage{
-druid_score(similarity_results, random_probabilities)
+druid_score(similarity_results, random_probabilities, num_random)
 }
 \arguments{
 \item{similarity_results}{Vector of cosine similarities}
@@ -13,12 +13,12 @@ druid_score(similarity_results, random_probabilities)
 
 \item{num_sets}{Number of random sets to generate}
 
-\item{target_tfidf}{Pathway tf-idf matrix.}
+\item{target_tfidf}{Drug tf-idf matrix.}
 
-\item{tfidf_crossprod_mat}{Cross-product matrix for pathway tf-idf.}
+\item{tfidf_crossprod_mat}{Cross-product matrix for drug tf-idf.}
 }
 \value{
-A vector of random probabilities for each pathway given the gene set size.
+A vector of random probabilities for each drug given the gene set size.
 }
 \description{
 This function computes the DRUID score for a given query vector. The DRUID score is dependent on the cosine similarity value as well as the random probability for any given drug against the query vector.
