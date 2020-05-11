@@ -50,12 +50,13 @@ druid_geneset <- function(dge_matrix,
   }
   
   x1 <- intersect(b1, b2)
-  if (length(x1) == 0) stop("No differentially expressed genes.")
-  
-  x2 <- gs_eff[x1]
-  
-  # query vector ----
-  query_vector[which(gene_space %in% x2)] <- 1
+  if (length(x1) == 0) {
+    message("No differentially expressed genes.")
+    } else {
+      x2 <- gs_eff[x1]
+     query_vector[which(gene_space %in% x2)] <- 1
+    }
+   
   qsize <- sum(query_vector)
   if(qsize == 0) message("No genes macthed in drug profiles.")
   
