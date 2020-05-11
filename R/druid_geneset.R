@@ -41,11 +41,11 @@ druid_geneset <- function(dge_matrix,
   b2 <- which(dge_matrix[, 2] < pvalue_thr)
   
   if(length(b2) == 0) {
-    stop("No differentially expressed genes at this p-value threshold.")
+    message("No differentially expressed genes at this p-value threshold.")
   } 
   
   if(length(b1) == 0 & fold_thr != 0) {
-    message("Fold threshold yielded no differentially expressed genes. Setting to threshold to 0.")
+    message("Fold threshold yielded no differentially expressed genes. Setting threshold to 0.")
     b1 <- which(abs(dge_matrix[, 1]) != 0)
   }
   
