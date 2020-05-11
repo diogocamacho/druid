@@ -57,7 +57,7 @@ druid_geneset <- function(dge_matrix,
   # query vector ----
   query_vector[which(gene_space %in% x2)] <- 1
   qsize <- sum(query_vector)
-  if(qsize == 0) stop("No genes macthed in drug profiles.")
+  if(qsize == 0) message("No genes macthed in drug profiles.")
   
   return(query_vector)
 }
