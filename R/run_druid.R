@@ -25,62 +25,82 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
                                 entrez = entrez, 
                                 gene_space = colnames(cauldron::druid_potion[[selection]]$tfidf))
   
-  # count number of matches on query vector to drug profile
-  tt <- colnames(cauldron::druid_potion[[selection]]$tfidf)[which(query_vector != 0)]
-  t2 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
-  
-  # get symbol mappings
-  a1 <- colnames(cauldron::druid_potion[[selection]]$tfidf)
-  a2 <- sapply(sapply(a1, strsplit, " "), "[", 2)
-  a3 <- sapply(sapply(a1, strsplit, " "), "[", 1)
-  a4 <- AnnotationDbi::mapIds(org.Hs.eg.db, keys = a3, keytype = "ENTREZID", column = "SYMBOL", multiVals = "first")
-  a5 <- tibble::tibble(entrez_direction = a1, symbol_direction = paste(a4, a2))
-  b1 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, 
-              function(y) { 
-                z1 <- which(a5$entrez_direction %in% intersect(tt, names(which(y != 0))))
-                z2 <- paste(a5$symbol_direction[z1], collapse = " | ") 
-                return(z2)})
-  
-  
-  # compute cosine similarities against query vector ----
-  # message("Computing cosine similarity on query vector...")
-  query_similarities <- cosine_similarity(tfidf_matrix = cauldron::druid_potion[[selection]]$tfidf,
-                                          tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm,
-                                          query_vector = query_vector)
-  
-  # random probabilities ----
-  # message("Computing cosine similarity on random vectors...")
-  prandom <- random_probability(similarity_results = query_similarities,
-                                gs_size = sum(query_vector),
-                                num_sets = num_random,
-                                target_tfidf = cauldron::druid_potion[[selection]]$tfidf,
-                                tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm)
-  
-  prandom[which(t2 < min_matches)] <- 1
-  
-  # DRUID Score ----
-  # message("Computing cosine similarity on random vectors...")
-  dscore <- druid_score(similarity_results = query_similarities, 
-                        random_probabilities = prandom, 
-                        num_random = num_random)
-  
-  # results ----
-  # message("Building results data frame...")
-  res <- tibble(cosine_similarity = as.vector(query_similarities),
-                probability_random = prandom,
-                druid_score = as.vector(dscore))
-  
-  res <- res %>% 
-    tibble::add_column(., number_matches = t2, .before = 1) %>%
-    tibble::add_column(., matched_genes = b1, .before = 2)
-  
-  res <- res %>% 
-    tibble::add_column(., drug_name = as.character(cauldron::druid_potion[[selection]]$drugs$name), .before = 1) %>%
-    tibble::add_column(., concentration = cauldron::druid_potion[[selection]]$drugs$concentration, .before = 2) %>%
-    tibble::add_column(., cell_line = as.character(cauldron::druid_potion[[selection]]$drugs$cell_line), .before = 3) %>%
-    tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
-    dplyr::arrange(., desc(druid_score)) %>%
-    dplyr::filter(., number_matches >= min_matches)
+  if (sum(query_vector) != 0) {
+    # count number of matches on query vector to drug profile
+    tt <- colnames(cauldron::druid_potion[[selection]]$tfidf)[which(query_vector != 0)]
+    t2 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
+    
+    # get symbol mappings
+    a1 <- colnames(cauldron::druid_potion[[selection]]$tfidf)
+    a2 <- sapply(sapply(a1, strsplit, " "), "[", 2)
+    a3 <- sapply(sapply(a1, strsplit, " "), "[", 1)
+    a4 <- AnnotationDbi::mapIds(org.Hs.eg.db, keys = a3, keytype = "ENTREZID", column = "SYMBOL", multiVals = "first")
+    a5 <- tibble::tibble(entrez_direction = a1, symbol_direction = paste(a4, a2))
+    b1 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, 
+                function(y) { 
+                  z1 <- which(a5$entrez_direction %in% intersect(tt, names(which(y != 0))))
+                  z2 <- paste(a5$symbol_direction[z1], collapse = " | ") 
+                  return(z2)})
+    
+    
+    # compute cosine similarities against query vector ----
+    # message("Computing cosine similarity on query vector...")
+    query_similarities <- cosine_similarity(tfidf_matrix = cauldron::druid_potion[[selection]]$tfidf,
+                                            tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm,
+                                            query_vector = query_vector)
+    
+    # random probabilities ----
+    # message("Computing cosine similarity on random vectors...")
+    prandom <- random_probability(similarity_results = query_similarities,
+                                  gs_size = sum(query_vector),
+                                  num_sets = num_random,
+                                  target_tfidf = cauldron::druid_potion[[selection]]$tfidf,
+                                  tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm)
+    
+    prandom[which(t2 < min_matches)] <- 1
+    
+    # DRUID Score ----
+    # message("Computing cosine similarity on random vectors...")
+    dscore <- druid_score(similarity_results = query_similarities, 
+                          random_probabilities = prandom, 
+                          num_random = num_random)
+    
+    # results ----
+    # message("Building results data frame...")
+    res <- tibble(cosine_similarity = as.vector(query_similarities),
+                  probability_random = prandom,
+                  druid_score = as.vector(dscore))
+    
+    res <- res %>% 
+      tibble::add_column(., number_matches = t2, .before = 1) %>%
+      tibble::add_column(., matched_genes = b1, .before = 2)
+    
+    res <- res %>% 
+      tibble::add_column(., drug_name = as.character(cauldron::druid_potion[[selection]]$drugs$name), .before = 1) %>%
+      tibble::add_column(., concentration = cauldron::druid_potion[[selection]]$drugs$concentration, .before = 2) %>%
+      tibble::add_column(., cell_line = as.character(cauldron::druid_potion[[selection]]$drugs$cell_line), .before = 3) %>%
+      tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
+      dplyr::arrange(., desc(druid_score)) %>%
+      dplyr::filter(., number_matches >= min_matches)
+                
+  } else {
+    
+    res <- tibble::tibble(cosine_similarity = 0,
+                  probability_random = 1,
+                  druid_score = 1)
+    
+    res <- res %>% 
+      tibble::add_column(., number_matches = 0, .before = 1) %>%
+      tibble::add_column(., matched_genes = NA, .before = 2)
+    
+    res <- res %>% 
+      tibble::add_column(., drug_name = NA, .before = 1) %>%
+      tibble::add_column(., concentration = NA, .before = 2) %>%
+      tibble::add_column(., cell_line = NA, .before = 3) %>%
+      tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
+      dplyr::arrange(., desc(druid_score)) %>%
+      dplyr::filter(., number_matches >= min_matches)
+  }
   
   return(res)
 }
