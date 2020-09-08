@@ -80,7 +80,7 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
     tibble::add_column(., cell_line = as.character(cauldron::druid_potion[[selection]]$drugs$cell_line), .before = 3) %>%
     tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
     dplyr::arrange(., desc(druid_score)) %>%
-    dplyr::filter(., number_matches < min_matches)
+    dplyr::filter(., number_matches >= min_matches)
   
   return(res)
 }
