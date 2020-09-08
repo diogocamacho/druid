@@ -30,7 +30,7 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
   t2 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
   
   # get symbol mappings
-  a1 <- colnames(druid_potion[[selection]]$tfidf)
+  a1 <- colnames(cauldron::druid_potion[[selection]]$tfidf)
   a2 <- sapply(sapply(a1, strsplit, " "), "[", 2)
   a3 <- sapply(sapply(a1, strsplit, " "), "[", 1)
   a4 <- AnnotationDbi::mapIds(org.Hs.eg.db, keys = a3, keytype = "ENTREZID", column = "SYMBOL", multiVals = "first")
