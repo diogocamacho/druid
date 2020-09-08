@@ -26,8 +26,21 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
                                 gene_space = colnames(cauldron::druid_potion[[selection]]$tfidf))
   
   # count number of matches on query vector to drug profile
-  tt <- colnames(cauldron::druid_potion[[4]]$tfidf)[which(query_vector != 0)]
-  t2 <- apply(cauldron::druid_potion[[4]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
+  tt <- colnames(cauldron::druid_potion[[selection]]$tfidf)[which(query_vector != 0)]
+  t2 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
+  
+  # get symbol mappings
+  a1 <- colnames(druid_potion[[selection]]$tfidf)
+  a2 <- sapply(sapply(a1, strsplit, " "), "[", 2)
+  a3 <- sapply(sapply(a1, strsplit, " "), "[", 1)
+  a4 <- AnnotationDbi::mapIds(org.Hs.eg.db, keys = a3, keytype = "ENTREZID", column = "SYMBOL", multiVals = "first")
+  a5 <- tibble::tibble(entrez_direction = a1, symbol_direction = paste(a4, a2))
+  b1 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, 
+              function(y) { 
+                z1 <- which(a5$entrez_direction %in% intersect(tt, names(which(y != 0))))
+                z2 <- paste(a5$symbol_direction[z1], collapse = " | ") 
+                return(z2)})
+  
   
   # compute cosine similarities against query vector ----
   # message("Computing cosine similarity on query vector...")
@@ -58,14 +71,16 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
                 druid_score = as.vector(dscore))
   
   res <- res %>% 
-    tibble::add_column(., number_matches = t2, .before = 1)
+    tibble::add_column(., number_matches = t2, .before = 1) %>%
+    tibble::add_column(., matched_genes = b1, .before = 2)
   
   res <- res %>% 
     tibble::add_column(., drug_name = as.character(cauldron::druid_potion[[selection]]$drugs$name), .before = 1) %>%
     tibble::add_column(., concentration = cauldron::druid_potion[[selection]]$drugs$concentration, .before = 2) %>%
     tibble::add_column(., cell_line = as.character(cauldron::druid_potion[[selection]]$drugs$cell_line), .before = 3) %>%
     tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
-    dplyr::arrange(., desc(druid_score))
+    dplyr::arrange(., desc(druid_score)) %>%
+    dplyr::filter(., number_matches < min_matches)
   
   return(res)
 }
