@@ -10,11 +10,14 @@
 #' @param pvalue_thr Threshold for the p-value of the fold change to be considered. Defaults to 0.05.
 #' @param entrez EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
 #' @param selection EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
+#' @param min_matches Minimal number of matches needed to compute a DRUID score. Defaults to 3.
 #' @return A data frame that is sorted on the DRUID score.
-run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez, num_random, selection) {
+run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez, num_random, selection, min_matches) {
+  
+  if(missing(min_matches)) min_matches <- 3
   
   # generate query vector ----
-  message("Generating query vector...")
+  # message("Generating query vector...")
   query_vector <- druid_geneset(dge_matrix = dge_matrix, 
                                 desired_effect = druid_direction, 
                                 fold_thr = fold_thr, 
@@ -22,35 +25,37 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
                                 entrez = entrez, 
                                 gene_space = colnames(cauldron::druid_potion[[selection]]$tfidf))
   
+  # count number of matches on query vector to drug profile
+  tt <- colnames(cauldron::druid_potion[[4]]$tfidf)[which(query_vector != 0)]
+  t2 <- apply(cauldron::druid_potion[[4]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
+  
   # compute cosine similarities against query vector ----
-  message("Computing cosine similarity on query vector...")
+  # message("Computing cosine similarity on query vector...")
   query_similarities <- cosine_similarity(tfidf_matrix = cauldron::druid_potion[[selection]]$tfidf,
                                           tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm,
                                           query_vector = query_vector)
   
   # random probabilities ----
-  message("Computing cosine similarity on random vectors...")
+  # message("Computing cosine similarity on random vectors...")
   prandom <- random_probability(similarity_results = query_similarities,
                                 gs_size = sum(query_vector),
                                 num_sets = num_random,
                                 target_tfidf = cauldron::druid_potion[[selection]]$tfidf,
                                 tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm)
   
+  prandom[which(t2 < min_matches)] <- 1
+  
   # DRUID Score ----
-  message("Computing cosine similarity on random vectors...")
+  # message("Computing cosine similarity on random vectors...")
   dscore <- druid_score(similarity_results = query_similarities, 
                         random_probabilities = prandom, 
                         num_random = num_random)
   
   # results ----
-  message("Building results data frame...")
+  # message("Building results data frame...")
   res <- tibble(cosine_similarity = as.vector(query_similarities),
                 probability_random = prandom,
                 druid_score = as.vector(dscore))
-  
-  # count number of matches to query vector
-  tt <- colnames(cauldron::druid_potion[[selection]]$tfidf)[which(query_vector != 0)]
-  t2 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
   
   res <- res %>% 
     tibble::add_column(., number_matches = t2, .before = 1)
