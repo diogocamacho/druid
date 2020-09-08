@@ -10,7 +10,7 @@
 #' @param pvalue_thr Threshold for the p-value of the fold change to be considered. Defaults to 0.05.
 #' @param entrez EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
 #' @param selection EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
-#' @param min_matches Minimal number of matches needed to compute a DRUID score. Defaults to 3.
+#' @param min_matches Minimal number of matches needed to report a DRUID score. Defaults to 3.
 #' @return A data frame that is sorted on the DRUID score.
 run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez, num_random, selection, min_matches) {
   
