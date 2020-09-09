@@ -72,8 +72,10 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
                   druid_score = as.vector(dscore))
     
     res <- res %>% 
-      tibble::add_column(., number_matches = t2, .before = 1) %>%
-      tibble::add_column(., matched_genes = b1, .before = 2)
+      tibble::add_column(., query_size = sum(query_vector), .before = 1) %>%
+      tibble::add_column(., number_matches = t2, .before = 2) %>%
+      # tibble::add_column(., percent_matched = t2 / sum(query_vector), .before = 3) %>%
+      tibble::add_column(., matched_genes = b1, .before = 4)
     
     res <- res %>% 
       tibble::add_column(., drug_name = as.character(cauldron::druid_potion[[selection]]$drugs$name), .before = 1) %>%
@@ -82,17 +84,17 @@ run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
       tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
       dplyr::arrange(., desc(druid_score)) %>%
       dplyr::filter(., number_matches >= min_matches)
-                
   } else {
-    
     res <- tibble::tibble(cosine_similarity = 0,
                   probability_random = 1,
                   druid_score = 1)
     
     res <- res %>% 
-      tibble::add_column(., number_matches = 0, .before = 1) %>%
-      tibble::add_column(., matched_genes = NA, .before = 2)
-    
+      tibble::add_column(., query_size = 0, .before = 1) %>%
+      tibble::add_column(., number_matches = 0, .before = 2) %>%
+      # tibble::add_column(., percent_matched = 0, .before = 3) %>%
+      tibble::add_column(., matched_genes = NA, .before = 4)
+
     res <- res %>% 
       tibble::add_column(., drug_name = NA, .before = 1) %>%
       tibble::add_column(., concentration = NA, .before = 2) %>%
