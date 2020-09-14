@@ -40,22 +40,52 @@ druid_geneset <- function(dge_matrix,
   b1 <- which(abs(dge_matrix[, 1]) > fold_thr)
   b2 <- which(dge_matrix[, 2] < pvalue_thr)
   
-  if(length(b2) == 0) {
-    message("No differentially expressed genes at this p-value threshold.")
-  } 
-  
-  if(length(b1) == 0 & fold_thr != 0) {
-    message("Fold threshold yielded no differentially expressed genes. Setting threshold to 0.")
-    b1 <- which(abs(dge_matrix[, 1]) != 0)
+  if (length(b1) != 0 & length(b2) != 0) { # <-- there are differentially expressed genes
+    x1 <- intersect(b1, b2)
+    x2 <- gs_eff[x1]
+    query_vector[which(gene_space %in% x2)] <- 1
+  } else if (length(b1) != 0 & length(b2) == 0) { # <-- fold but no p-value
+    pvalue_thr <- 0.05
+    b2 <- which(dge_matrix[, 2] < pvalue_thr)
+    x1 <- intersect(b1, b2)
+    if(length(x1) == 0) {
+      message("No differentially expressed genes.")
+    } else {
+      message("q-value threshold yielded no statistically significant genes. Changing threshold to 0.05.")
+      x2 <- gs_eff[x1]
+      query_vector[which(gene_space %in% x2)] <- 1
+    }
+  } else if (length(b1) == 0 & length(b2) != 0) {
+    fold_thr <- 0
+    b1 <- which(abs(dge_matrix[, 1]) > fold_thr)
+    x1 <- intersect(b1, b2)
+    if (length(x1) == 0) {
+      message("No differentially expressed genes.")
+    } else {
+      message("Fold-change threshold yielded no statistically significant genes. Changing threshold to 0.")
+      x2 <- gs_eff[x1]
+      query_vector[which(gene_space %in% x2)] <- 1
+    }
+  } else if (length(b1) == 0 & length(b2) == 0) {
+    message("No differentially expressed genes.")
   }
   
-  x1 <- intersect(b1, b2)
-  if (length(x1) == 0) {
-    message("No differentially expressed genes.")
-    } else {
-      x2 <- gs_eff[x1]
-     query_vector[which(gene_space %in% x2)] <- 1
-    }
+  # if(length(b2) == 0) {
+  #   message("No differentially expressed genes at this p-value threshold.")
+  # } 
+  
+  # if(length(b1) == 0 & fold_thr != 0) {
+  #   message("Fold threshold yielded no differentially expressed genes. Setting threshold to 0.")
+  #   b1 <- which(abs(dge_matrix[, 1]) != 0)
+  # }
+  
+  # x1 <- intersect(b1, b2)
+  # if (length(x1) == 0) {
+  #   message("No differentially expressed genes.")
+  #   } else {
+  #     x2 <- gs_eff[x1]
+  #    query_vector[which(gene_space %in% x2)] <- 1
+  #   }
    
   qsize <- sum(query_vector)
   if(qsize == 0) message("No genes macthed in drug profiles.")
