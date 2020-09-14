@@ -1,5 +1,8 @@
 # NEWS
 
+Version 1.1.1 (09/14/2020)
++ fixed a redundancy on reporting when a signature yielded no significant genes.
+
 Version 1.1.0 (09/08/2020)
 + filtering out drug matches with less than `min_matches`
 + added `AnnotationDbi` dependency
