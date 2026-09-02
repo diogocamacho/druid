@@ -1,0 +1,26 @@
+mode	drug_name	concentration	cell_line	number_matches	cosine	rank
+geom_mean	etoposide	6.8	MCF7	37	0.108045948121416	1
+geom_mean	etoposide	6.8	MCF7	31	0.101845656244647	2
+geom_mean	methotrexate	8.8	MCF7	30	0.0982441575967318	3
+geom_mean	monobenzone	20	MCF7	26	0.0951554147144782	4
+geom_mean	resveratrol	10	MCF7	28	0.0832396527986565	5
+geom_mean	5109870	25	MCF7	32	0.0824688952673718	6
+geom_mean	0173570-0000	10	PC3	31	0.0782262805989528	7
+geom_mean	ciclopirox	15	MCF7	28	0.0743910725758521	8
+geom_mean	resveratrol	17.6	HL60	36	0.0739489748236467	9
+geom_mean	methotrexate	8.8	MCF7	23	0.0714905705355663	10
+geom_mean	resveratrol	10	MCF7	32	0.0714140814664822	11
+geom_mean	methotrexate	8.8	MCF7	27	0.0691158452455221	12
+geom_mean	monobenzone	20	HL60	27	0.0675501058235305	13
+geom_mean	trifluridine	13.6	HL60	21	0.0639567876393226	14
+geom_mean	trifluridine	13.6	MCF7	22	0.0620016985085712	15
+geom_mean	gallamine triethiodide	4.4	PC3	22	0.0611030630299087	16
+geom_mean	crotamiton	19.6	MCF7	18	0.0603388305443869	17
+geom_mean	beta-escin	3.2	PC3	32	0.060312659078891	18
+geom_mean	trichostatin A	0.1	PC3	28	0.0597993026301299	19
+geom_mean	etynodiol	10.4	HL60	24	0.0595845591556298	20
+geom_mean	trichostatin A	1	PC3	28	0.0595373015944896	21
+geom_mean	trichostatin A	0.1	MCF7	22	0.0586448821494805	22
+geom_mean	scriptaid	10	PC3	24	0.057999845818328	23
+geom_mean	trifluridine	13.6	MCF7	18	0.0578900669913836	24
+geom_mean	vorinostat	10	PC3	26	0.0576464502221398	25

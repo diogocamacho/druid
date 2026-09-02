@@ -1,108 +1,152 @@
 #' Run DRUID
-#' 
-#' Given a selection on the drug compendium, produces a data frame with the results of DRUID. Makes the `concoct` function somewhat redundant (to be revised later.)
 #'
-#' @param dge_matrix This is a 2 column matrix for gene expression changes, where column 1 is the gene fold change and column 2 is the corresponding p-value for the fold change. NOTE: Use log2 of the fold changes as output, for example, from `limma` or `DESeq2`.
-#' @param tfidf_matrix tf-idf matrix drug-gene matrix. Column names are Entrez IDs. Computed with \code{\link{ctfidf}}
-#' @param num_random Number of random sets to be generated to calculate significance of enrichment.  Defaults to 1,000.
-#' @param druid_direction Desired effect for DRUID to run on: "pos" mimics query phenotype, "neg" reverts query phenotype. Defaults to "neg".
-#' @param fold_thr Threshold for the fold change to be considered. Defaults to 0 (i.e., log2(1), where fold change is not used as filter)
-#' @param pvalue_thr Threshold for the p-value of the fold change to be considered. Defaults to 0.05.
-#' @param entrez EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
-#' @param selection EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.
-#' @param min_matches Minimal number of matches needed to report a DRUID score. Defaults to 3.
-#' @return A data frame that is sorted on the DRUID score.
-run_druid <- function(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez, num_random, selection, min_matches) {
-  
-  if(missing(min_matches)) min_matches <- 3
-  
-  # generate query vector ----
-  # message("Generating query vector...")
-  query_vector <- druid_geneset(dge_matrix = dge_matrix, 
-                                desired_effect = druid_direction, 
-                                fold_thr = fold_thr, 
-                                pvalue_thr = pvalue_thr, 
-                                entrez = entrez, 
-                                gene_space = colnames(cauldron::druid_potion[[selection]]$tfidf))
-  
+#' Given a selection on the drug compendium, produces a data frame with the
+#' results of DRUID.
+#'
+#' @param dge_matrix Nx2 matrix: column 1 log2 fold-change, column 2 p-value
+#'   (e.g. from \code{limma} or \code{DESeq2}).
+#' @param druid_direction \code{"pos"} mimics query phenotype, \code{"neg"}
+#'   reverts it. Defaults to \code{"neg"}.
+#' @param fold_thr Absolute log2FC threshold. Defaults to 0.
+#' @param pvalue_thr P-value threshold. Defaults to 0.05.
+#' @param entrez Entrez IDs for genes in \code{dge_matrix} (same order).
+#' @param num_random Number of random gene sets for empirical null. Defaults to 1000.
+#' @param selection Dataset id (1-5) or name (\code{cmap}, \code{lincs}, ...).
+#' @param min_matches Minimum overlapping features to keep a drug profile. Defaults to 3.
+#' @param tfidf_mode Corpus weighting: \code{"geom_tf"} (geometric mean of dual
+#'   TF-IDF views; recommended), \code{"combined"} (Hadamard / historical),
+#'   \code{"binary"}, or \code{"drug_tfidf"}.
+#' @param n_cores Cores for batched null (fork). Defaults to 1 (reproducible).
+#' @return A tibble sorted by decreasing DRUID score.
+run_druid <- function(dge_matrix,
+                      druid_direction = c("neg", "pos"),
+                      fold_thr = 0,
+                      pvalue_thr = 0.05,
+                      entrez,
+                      num_random = 1000,
+                      selection,
+                      min_matches = 3,
+                      tfidf_mode = c("geom_tf", "combined", "binary", "drug_tfidf"),
+                      n_cores = 1L) {
+
+  if (missing(selection)) stop("Need dataset selection (e.g. 'cmap' or 1).")
+  if (missing(entrez)) stop("Need EntrezIDs for genes in dge_matrix.")
+  if (missing(dge_matrix)) stop("Need differential expression data.")
+
+  druid_direction <- match.arg(druid_direction)
+  tfidf_mode <- match.arg(tfidf_mode)
+  if (missing(min_matches)) min_matches <- 3
+  if (missing(num_random)) num_random <- 1000
+  if (missing(fold_thr)) fold_thr <- 0
+  if (missing(pvalue_thr)) pvalue_thr <- 0.05
+
+  corpus <- prepare_druid_corpus(selection = selection, tfidf_mode = tfidf_mode)
+  tfidf <- corpus$tfidf
+  cpm <- corpus$cpm
+  drugs <- corpus$drugs
+  B <- corpus$binary
+  gene_space <- colnames(tfidf)
+
+  query_vector <- druid_geneset(
+    dge_matrix = dge_matrix,
+    desired_effect = druid_direction,
+    fold_thr = fold_thr,
+    pvalue_thr = pvalue_thr,
+    entrez = entrez,
+    gene_space = gene_space
+  )
+
   if (sum(query_vector) != 0) {
-    # count number of matches on query vector to drug profile
-    tt <- colnames(cauldron::druid_potion[[selection]]$tfidf)[which(query_vector != 0)]
-    t2 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, function(y) length(intersect(tt, names(which(y != 0)))))
-    
-    # get symbol mappings
-    a1 <- colnames(cauldron::druid_potion[[selection]]$tfidf)
-    a2 <- sapply(sapply(a1, strsplit, " "), "[", 2)
-    a3 <- sapply(sapply(a1, strsplit, " "), "[", 1)
-    a4 <- AnnotationDbi::mapIds(org.Hs.eg.db, keys = a3, keytype = "ENTREZID", column = "SYMBOL", multiVals = "first")
-    a5 <- tibble::tibble(entrez_direction = a1, symbol_direction = paste(a4, a2))
-    b1 <- apply(cauldron::druid_potion[[selection]]$tfidf, 1, 
-                function(y) { 
-                  z1 <- which(a5$entrez_direction %in% intersect(tt, names(which(y != 0))))
-                  z2 <- paste(a5$symbol_direction[z1], collapse = " | ") 
-                  return(z2)})
-    
-    
-    # compute cosine similarities against query vector ----
-    # message("Computing cosine similarity on query vector...")
-    query_similarities <- cosine_similarity(tfidf_matrix = cauldron::druid_potion[[selection]]$tfidf,
-                                            tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm,
-                                            query_vector = query_vector)
-    
-    # random probabilities ----
-    # message("Computing cosine similarity on random vectors...")
-    prandom <- random_probability(similarity_results = query_similarities,
-                                  gs_size = sum(query_vector),
-                                  num_sets = num_random,
-                                  target_tfidf = cauldron::druid_potion[[selection]]$tfidf,
-                                  tfidf_crossprod_mat = cauldron::druid_potion[[selection]]$cpm)
-    
+    tt <- gene_space[which(query_vector != 0)]
+    B_q <- B[, query_vector != 0, drop = FALSE]
+    t2 <- as.integer(Matrix::rowSums(B_q != 0))
+
+    # labels for query features (symbols if org.Hs.eg.db available)
+    parts <- strsplit(tt, " ", fixed = TRUE)
+    entrez_q <- vapply(parts, function(z) z[[1]], character(1))
+    dir_q <- vapply(parts, function(z) if (length(z) >= 2) z[[2]] else NA_character_, character(1))
+    if (requireNamespace("AnnotationDbi", quietly = TRUE) &&
+        requireNamespace("org.Hs.eg.db", quietly = TRUE)) {
+      sym_q <- AnnotationDbi::mapIds(
+        org.Hs.eg.db::org.Hs.eg.db,
+        keys = unique(entrez_q),
+        keytype = "ENTREZID",
+        column = "SYMBOL",
+        multiVals = "first"
+      )
+      feature_labels <- paste(unname(sym_q[entrez_q]), dir_q)
+    } else {
+      feature_labels <- tt
+    }
+
+    # matched gene strings via sparse summary (no per-row apply over full matrix)
+    b1 <- character(nrow(B_q))
+    sm <- Matrix::summary(B_q)
+    if (nrow(sm) > 0) {
+      labs <- feature_labels[sm$j]
+      split_labs <- split(labs, sm$i)
+      b1[as.integer(names(split_labs))] <- vapply(
+        split_labs,
+        function(z) paste(z, collapse = " | "),
+        character(1)
+      )
+    }
+
+    query_similarities <- cosine_similarity(
+      tfidf_matrix = tfidf,
+      tfidf_crossprod_mat = cpm,
+      query_vector = query_vector
+    )
+
+    prandom <- random_probability(
+      similarity_results = query_similarities,
+      gs_size = sum(query_vector),
+      num_sets = num_random,
+      target_tfidf = tfidf,
+      tfidf_crossprod_mat = cpm,
+      n_cores = n_cores
+    )
     prandom[which(t2 < min_matches)] <- 1
-    
-    # DRUID Score ----
-    # message("Computing cosine similarity on random vectors...")
-    dscore <- druid_score(similarity_results = query_similarities, 
-                          random_probabilities = prandom, 
-                          num_random = num_random)
-    
-    # results ----
-    # message("Building results data frame...")
-    res <- tibble(cosine_similarity = as.vector(query_similarities),
-                  probability_random = prandom,
-                  druid_score = as.vector(dscore))
-    
-    res <- res %>% 
+
+    dscore <- druid_score(
+      similarity_results = query_similarities,
+      random_probabilities = prandom,
+      num_random = num_random
+    )
+    dscore[!is.finite(as.vector(dscore))] <- 1
+
+    res <- tibble::tibble(
+      cosine_similarity = as.vector(query_similarities),
+      probability_random = prandom,
+      druid_score = as.vector(dscore)
+    )
+
+    res <- res %>%
       tibble::add_column(., query_size = sum(query_vector), .before = 1) %>%
       tibble::add_column(., number_matches = t2, .before = 2) %>%
-      # tibble::add_column(., percent_matched = t2 / sum(query_vector), .before = 3) %>%
-      tibble::add_column(., matched_genes = b1, .before = 4)
-    
-    res <- res %>% 
-      tibble::add_column(., drug_name = as.character(cauldron::druid_potion[[selection]]$drugs$name), .before = 1) %>%
-      tibble::add_column(., concentration = cauldron::druid_potion[[selection]]$drugs$concentration, .before = 2) %>%
-      tibble::add_column(., cell_line = as.character(cauldron::druid_potion[[selection]]$drugs$cell_line), .before = 3) %>%
-      tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
-      dplyr::arrange(., desc(druid_score)) %>%
+      tibble::add_column(., matched_genes = b1, .before = 4) %>%
+      tibble::add_column(., drug_name = as.character(drugs$name), .before = 1) %>%
+      tibble::add_column(., concentration = drugs$concentration, .before = 2) %>%
+      tibble::add_column(., cell_line = as.character(drugs$cell_line), .before = 3) %>%
+      tibble::add_column(., data_source = corpus$name, .before = 1) %>%
+      tibble::add_column(., tfidf_mode = tfidf_mode, .before = 2) %>%
+      dplyr::arrange(., dplyr::desc(druid_score)) %>%
       dplyr::filter(., number_matches >= min_matches)
   } else {
-    res <- tibble::tibble(cosine_similarity = 0,
-                  probability_random = 1,
-                  druid_score = 1)
-    
-    res <- res %>% 
-      tibble::add_column(., query_size = 0, .before = 1) %>%
-      tibble::add_column(., number_matches = 0, .before = 2) %>%
-      # tibble::add_column(., percent_matched = 0, .before = 3) %>%
-      tibble::add_column(., matched_genes = NA, .before = 4)
-
-    res <- res %>% 
-      tibble::add_column(., drug_name = NA, .before = 1) %>%
-      tibble::add_column(., concentration = NA, .before = 2) %>%
-      tibble::add_column(., cell_line = NA, .before = 3) %>%
-      tibble::add_column(., data_source = names(cauldron::druid_potion)[selection], .before = 1) %>%
-      dplyr::arrange(., desc(druid_score)) %>%
-      dplyr::filter(., number_matches >= min_matches)
+    res <- tibble::tibble(
+      data_source = corpus$name,
+      tfidf_mode = tfidf_mode,
+      drug_name = NA_character_,
+      concentration = NA_real_,
+      cell_line = NA_character_,
+      query_size = 0,
+      number_matches = 0,
+      matched_genes = NA_character_,
+      cosine_similarity = 0,
+      probability_random = 1,
+      druid_score = 1
+    )
   }
-  
-  return(res)
+
+  res
 }

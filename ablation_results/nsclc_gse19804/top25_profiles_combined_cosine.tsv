@@ -1,0 +1,26 @@
+mode	drug_name	concentration	cell_line	number_matches	cosine	rank
+combined	monobenzone	20	MCF7	26	0.0835417210838234	1
+combined	methotrexate	8.8	MCF7	30	0.081212192836575	2
+combined	etoposide	6.8	MCF7	37	0.0801461075409377	3
+combined	etoposide	6.8	MCF7	31	0.0757686712314729	4
+combined	methotrexate	8.8	MCF7	23	0.0688777007531573	5
+combined	resveratrol	10	MCF7	28	0.0643655413111999	6
+combined	methotrexate	8.8	MCF7	27	0.0592258494803257	7
+combined	5109870	25	MCF7	32	0.0561204850164732	8
+combined	trifluridine	13.6	HL60	21	0.0530071324765988	9
+combined	carbamazepine	17	MCF7	16	0.0523448568669367	10
+combined	ciclopirox	15	MCF7	28	0.0511051828083748	11
+combined	trifluridine	13.6	MCF7	22	0.0510689477311553	12
+combined	crotamiton	19.6	MCF7	18	0.0498385962507833	13
+combined	0173570-0000	10	PC3	31	0.0495674576392898	14
+combined	scriptaid	10	PC3	24	0.0493428879094554	15
+combined	probenecid	14	PC3	11	0.0484393634561266	16
+combined	trichostatin A	0.1	HL60	18	0.0479201804617184	17
+combined	benzthiazide	9.2	PC3	15	0.0474836161292971	18
+combined	monobenzone	20	HL60	27	0.0473401842849951	19
+combined	clozapine	10	MCF7	12	0.0455826758438652	20
+combined	etofylline	17.8	MCF7	14	0.0449949185476165	21
+combined	gallamine triethiodide	4.4	PC3	22	0.0444842998152818	22
+combined	S-propranolol	13.6	MCF7	16	0.0437716137636926	23
+combined	trichostatin A	1	MCF7	15	0.0436529381133591	24
+combined	pimozide	8.6	MCF7	24	0.0433494731592865	25

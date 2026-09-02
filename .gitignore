@@ -1,0 +1,3 @@
+# Large ablation dumps (summaries live in inst/extdata and ablation_results/*.md)
+ablation_results/ablation_per_query.tsv
+.DS_Store

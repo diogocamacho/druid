@@ -1,0 +1,26 @@
+drug_name	rank_combined	rank_geom	delta	cos_combined	cos_geom	cell
+monobenzone	1	4	3	0.08354	0.09516	MCF7
+methotrexate	2	3	1	0.08121	0.09824	MCF7
+etoposide	3	1	-2	0.08015	0.10805	MCF7
+resveratrol	6	5	-1	0.06437	0.08324	MCF7
+5109870	8	6	-2	0.05612	0.08247	MCF7
+trifluridine	9	14	5	0.05301	0.06396	HL60
+carbamazepine	10	40	30	0.05234	0.05367	MCF7
+ciclopirox	11	8	-3	0.05111	0.07439	MCF7
+crotamiton	13	17	4	0.04984	0.06034	MCF7
+0173570-0000	14	7	-7	0.04957	0.07823	PC3
+scriptaid	15	23	8	0.04934	0.058	PC3
+probenecid	16	103	87	0.04844	0.0449	PC3
+trichostatin A	17	19	2	0.04792	0.0598	HL60
+benzthiazide	18	90	72	0.04748	0.04613	PC3
+clozapine	20	207	187	0.04558	0.03995	MCF7
+etofylline	21	107	86	0.04499	0.04449	MCF7
+gallamine triethiodide	22	16	-6	0.04448	0.0611	PC3
+S-propranolol	23	59	36	0.04377	0.04973	MCF7
+pimozide	25	45	20	0.04335	0.05272	MCF7
+trazodone	26	151	125	0.04331	0.04191	HL60
+acepromazine	28	108	80	0.04309	0.04447	PC3
+tiabendazole	29	496	467	0.04296	0.03354	HL60
+sulfamethoxypyridazine	30	703	673	0.04272	0.03067	HL60
+skimmianine	32	109	77	0.04238	0.04433	MCF7
+suloctidil	33	48	15	0.04222	0.05195	MCF7
