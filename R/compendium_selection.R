@@ -3,6 +3,7 @@
 #' This function will make the selection of which data source to use to run DRUID against. All the datasets were generated with the companion package `cauldron`.
 #' 
 #' @return An integer.
+#' @export
 compendium_selection <- function() {
   message("Available data sets:")
   message("[1] CMAP")

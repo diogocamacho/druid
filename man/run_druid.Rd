@@ -4,29 +4,64 @@
 \alias{run_druid}
 \title{Run DRUID}
 \usage{
-run_druid(dge_matrix, druid_direction, fold_thr, pvalue_thr, entrez,
-  num_random, selection)
+run_druid(
+  dge_matrix,
+  druid_direction = c("neg", "pos"),
+  fold_thr = 0,
+  pvalue_thr = 0.05,
+  entrez,
+  num_random = 1000,
+  selection = NULL,
+  tfidf_matrix = NULL,
+  tfidf_crossproduct = NULL,
+  drugs = NULL,
+  data_source = "custom",
+  min_matches = 3,
+  tfidf_mode = c("geom_tf", "combined", "binary", "drug_tfidf"),
+  n_cores = 1L
+)
 }
 \arguments{
-\item{dge_matrix}{This is a 2 column matrix for gene expression changes, where column 1 is the gene fold change and column 2 is the corresponding p-value for the fold change. NOTE: Use log2 of the fold changes as output, for example, from `limma` or `DESeq2`.}
+\item{dge_matrix}{Nx2 matrix: column 1 log2 fold-change, column 2 p-value
+(e.g. from \code{limma} or \code{DESeq2}).}
 
-\item{druid_direction}{Desired effect for DRUID to run on: "pos" mimics query phenotype, "neg" reverts query phenotype. Defaults to "neg".}
+\item{druid_direction}{\code{"pos"} mimics query phenotype, \code{"neg"}
+reverts it. Defaults to \code{"neg"}.}
 
-\item{fold_thr}{Threshold for the fold change to be considered. Defaults to 0 (i.e., log2(1), where fold change is not used as filter)}
+\item{fold_thr}{Absolute log2FC threshold. Defaults to 0.}
 
-\item{pvalue_thr}{Threshold for the p-value of the fold change to be considered. Defaults to 0.05.}
+\item{pvalue_thr}{P-value threshold. Defaults to 0.05.}
 
-\item{entrez}{EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.}
+\item{entrez}{Entrez IDs for genes in \code{dge_matrix} (same order).}
 
-\item{num_random}{Number of random sets to be generated to calculate significance of enrichment.  Defaults to 1,000.}
+\item{num_random}{Number of random gene sets for empirical null. Defaults to 1000.}
 
-\item{selection}{EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.}
+\item{selection}{Dataset id (1-5) or name (\code{cmap}, \code{lincs}, ...).
+Ignored if \code{tfidf_matrix} is supplied.}
 
-\item{tfidf_matrix}{tf-idf matrix drug-gene matrix. Column names are Entrez IDs. Computed with \code{\link{ctfidf}}}
+\item{tfidf_matrix}{Optional drug x feature matrix (BYO corpus). When set,
+\code{tfidf_crossproduct} and \code{drugs} must also be supplied.}
+
+\item{tfidf_crossproduct}{Row squared-norms of \code{tfidf_matrix}.}
+
+\item{drugs}{Optional data frame with at least \code{name}, \code{concentration},
+\code{cell_line} columns (one row per drug profile).}
+
+\item{data_source}{Label for results when using BYO matrices. Defaults to
+\code{"custom"}.}
+
+\item{min_matches}{Minimum overlapping features to keep a drug profile. Defaults to 3.}
+
+\item{tfidf_mode}{Corpus weighting: \code{"geom_tf"} (geometric mean of dual
+TF-IDF views; recommended), \code{"combined"} (Hadamard / historical),
+\code{"binary"}, or \code{"drug_tfidf"}.}
+
+\item{n_cores}{Cores for batched null (fork). Defaults to 1 (reproducible).}
 }
 \value{
-A data frame that is sorted on the DRUID score.
+A tibble sorted by decreasing DRUID score.
 }
 \description{
-Given a selection on the drug compendium, produces a data frame with the results of DRUID. Makes the `concoct` function somewhat redundant (to be revised later.)
+Given a selection on the drug compendium, produces a data frame with the
+results of DRUID.
 }

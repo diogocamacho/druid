@@ -6,6 +6,7 @@
 #' @param tfidf_matrix Sparse (or dense) drug x feature matrix
 #' @param tfidf_crossprod_mat Row squared-norms of \code{tfidf_matrix}
 #' @return Numeric vector of cosine similarities (one per row)
+#' @keywords internal
 cosine_similarity <- function(query_vector, tfidf_matrix, tfidf_crossprod_mat) {
   if (is.matrix(query_vector)) {
     x2 <- as.numeric(tcrossprod(query_vector))

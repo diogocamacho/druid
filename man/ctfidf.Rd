@@ -7,16 +7,20 @@
 ctfidf(data_matrix)
 }
 \arguments{
-\item{data_matrix}{Sparse document-term matrix (condition by gene matrix), named (rows and columns)}
+\item{data_matrix}{Sparse document-term matrix (condition by gene matrix), named}
 }
 \value{
 A sparse matrix with the computed combined tf-idf
 }
 \description{
-Returns a tf-idf sparse matrix given a condition-gene matrix.
-This matrix is a DxT matrix, where D is the set of conditions (disease indications) T are the genes affecting that condition.
-To correct effect/prevalence of genes in a given condition or to correct conditions affected by many genes, we compute the tf-idf matrix twice, to get the combined tf-idf:
+Returns a combined (bidirectional) tf-idf sparse matrix for a condition-gene
+matrix. For each nonzero (drug, gene-direction) cell this is the Hadamard
+product of drug-as-document TF-IDF and gene-as-document TF-IDF:
 }
 \details{
-\eqn{ctfidf = tfidf(dtm) \times t(tfidf(dtm))}
+\deqn{ctfidf_{d,g} = tfidf^{(D)}_{d,g} \times tfidf^{(G)}_{g,d}}
+
+For binary one-hot input that equals the closed form
+(1/(s_d df_g)) * log(D/df_g) * log(T/s_d).
+This is not the matrix product tfidf(dtm) %*% t(tfidf(dtm)).
 }

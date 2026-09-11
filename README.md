@@ -1,81 +1,106 @@
 # DRUID: DRUg Indication Discoverer
 
-DRUID, or DRUg Indication Discoverer, is an algorithm that identifies drug profiles that revert or mimic a condition of interest.  For example, DRUID can be used to repurpose compounds for novel indications given a gene expression profile, it can be used to prioritize compounds for a compendium of disease states, and it can be incorporated into computational chemistry pipelines for the identification and characterization of drug properties for novel design. 
+DRUID ranks drug transcriptional profiles that **mimic** or **revert** a query gene expression signature. It uses a Harmonizome-style drug corpus (gene-direction tokens), dual TF-IDF weighting (default: geometric mean of drug- and gene-as-document views), cosine similarity, and an empirical null model.
 
 ## Installation
 
-Install from GitHub using `devtools` as:
-
-```
+```r
+# install.packages("devtools")
 devtools::install_github("diogocamacho/druid")
 ```
 
-## Running
-The easiest way to run DRUID is to use its wrapper `concoct` as:
+Optional: install [`cauldron`](https://github.com/diogocamacho/cauldron) for LINCS, CTD, and other compendia beyond bundled CMAP.
 
-```
+## Quick start
+
+```r
 library(DRUID)
-res <- concoct(dge_matrix, tfidf_matrix, crossproduct_vector, number_random, effect_direction, fold_thr, pvalue_thr, entrez_ids)
+
+# dge_matrix: column 1 = log2 fold-change, column 2 = p-value
+# entrez: Entrez IDs in the same order as dge_matrix rows
+
+res <- concoct(
+  dge_matrix = dge_matrix,
+  entrez = entrez_ids,
+  dataset = "cmap",           # headless; omit for interactive picker
+  tfidf_mode = "geom_tf",     # recommended (default)
+  druid_direction = "neg",    # revert disease signature
+  fold_thr = 1,
+  pvalue_thr = 0.01,
+  num_random = 1000,
+  n_cores = 1                 # increase for faster null (fork, non-Windows)
+)
 ```
 
-where `dge_matrix` is a 2-column matrix for the query gene expression signature (column 1: fold-changes; column 2: p-values); `tfidf_matrix` is the calculated corrected TF-IDF matrix (see `ctfidf` function); `crossproduct_vector` is the crossproduct of the TF-IDF matrix (see `crossprod_matrix` function); `number_random` is the number of random simulations to be run to assess significance of scores (defaults to 1,000 - see `random_probability` function); `effect_direction` is the desired effect of the drug ("neg" for a reversal of the query phenotype, "pos" for a mimicking of the phenotype. Defaults to "neg"); `fold_thr` is a threshold for the fold changes (defaults to log2 = 0); `pvalue_thr` is the threshold for expression change significance (defaults to 0.05); and `entrez_ids` are the EntrezIDs for the genes in the query signature.
+Results are a tibble sorted by `druid_score`, with drug metadata, overlap counts, cosine similarity, and empirical p-values.
 
-DRUID comes pre-packaged with a TF-IDF matrix and cross-product vector that were derived from the Connectivity Map data (as available in the [Harmonizome](http://amp.pharm.mssm.edu/Harmonizome/)). 
+### Corpus weighting modes (`tfidf_mode`)
 
-## Example
-As an example, I will use the CMAP TF-IDF to generate a query vector and run DRUID on it.
+| Mode | Description |
+|------|-------------|
+| `geom_tf` | **Default.** Geometric mean of drug-view and gene-view TF-IDF |
+| `combined` | Hadamard product (historical DRUID) |
+| `binary` | One-hot support only |
+| `drug_tfidf` | Drug-as-document TF-IDF only |
 
-```
-gset <- unique(gsub(" down", "", gsub(" up", "", sample(colnames(DRUID::cmap_druid$tfidf), 100))))
+### Datasets (`dataset`)
 
-query_matrix <- matrix(1, ncol = 2, nrow = length(gset))
-query_matrix[, 2] <- 0
-query_matrix[sample(x = seq(1, length(gset)), size = 0.25 * length(gset)), 1] <- -1
-```
+| Value | Source |
+|-------|--------|
+| `cmap` | Bundled Harmonizome CMAP (no `cauldron` required) |
+| `lincs`, `small_molecules`, `natural_products`, `ctd` | Requires `cauldron` |
+| `all` | Run all five compendia and bind results |
 
-With the generated query matrix, we can now run DRUID on it using the `concoct` wrapper:
+## Bring your own corpus
 
-```
-example_druid <- concoct(dge_matrix = query_matrix, tfidf_matrix = DRUID::cmap_druid$tfidf, tfidf_crossproduct = DRUID::cmap_druid$cpm, num_random = 10000, druid_direction = "neg", fold_thr = 0, pvalue_thr = 0.05, entrez = gset)
-```
+Build a binary drug × gene-direction matrix, then compute weights:
 
-The output of DRUID is a `tibble` data frame with all the scores for all the drugs.  Specifically, the columns in this data frame are:
+```r
+library(Matrix)
+# data_matrix: sparse binary, rows = drug profiles, cols = "ENTREZ up/down"
 
-  * number_matches: number of genes in query signature found in drug signature;
-  * cosine_similarity: similarity of query signature to drug signature;
-  * probability_random: probability of cosine similarity being better than random;
-  * druid_score: calculated DRUID score, taking into account the cosine similarity and the random probability.
-  
-We can expand this data frame using `magrittr` and `tibble` together with the information on the drugs as:
+W <- ctfidf(data_matrix)              # combined (Hadamard)
+cpm <- crossprod_matrix(W)
 
-```
-example_druid <- example_druid %>% 
-  tibble::add_column(., drug_name = DRUID::cmap_druid$drugs$name, .before = 1) %>%
-  tibble::add_column(., concentration = DRUID::cmap_druid$drugs$concentration, .before = 2) %>%
-  tibble::add_column(., cell_line = DRUID::cmap_druid$drugs$cell_line, .before = 3)
-```
-
-We can now use `ggplot2` to visualize the results:
-
-```
-example_druid %>% dplyr::filter(., cosine_similarity == 0) %>% ggplot() + geom_point(aes(x = drug_name, y = druid_score, color = cell_line), alpha = 0.5) + facet_grid(. ~ cell_line, scales = "free") + theme_bw() + theme(axis.text.x = element_blank())
+res <- run_druid(
+  dge_matrix = dge_matrix,
+  entrez = entrez_ids,
+  tfidf_matrix = W,
+  tfidf_crossproduct = cpm,
+  drugs = drug_metadata_df,
+  data_source = "my_corpus"
+)
 ```
 
-## Using other sources
-DRUID comes pre-packaged with the TF-IDF for the Connectivity Map data, but it's simple to generate a TF-IDF to meet your needs.  For that, the `ctfidf` function will be used, which uses the `tidytext` package by Julia Silge. Inputs to this function are a data matrix where the columns are the words (eg, genes and their direction) and the rows are the documents (eg, drugs).  
+Or use `prepare_druid_corpus()` internally via `selection` + `tfidf_mode` on bundled/cauldron data.
 
-A drug profile will generate a different response on the transcriptome, with genes being differentially expressed.  As such, we can generate a one-hot encoded vector in which all possibilities of change are represented for each gene in a given condition.  These are the vectors that will be present in the data matrix that serves as input to `ctfidf`, where each "word" represents a gene (as an Entrez ID) and the direction of change that the "document" (drug) caused.
+## NSCLC example (GSE19804)
 
-(NOTE: a one-hot encoding function was not included in DRUID.  Will be included in future releases.)
+See `inst/scripts/nsclc_combined_vs_geom.R` and `ablation_results/nsclc_gse19804/` for a manuscript-style comparison of `combined` vs `geom_tf` on lung tumor vs normal.
 
-With a one-hot encoded matrix, we can generate a TF-IDF matrix as:
+Typical manuscript settings:
 
+```r
+res <- concoct(
+  dge_matrix = cbind(lung_res$logFC, lung_res$adj.P.Val),
+  entrez = genes_lung$ENTREZID,
+  dataset = "cmap",
+  tfidf_mode = "geom_tf",
+  druid_direction = "neg",
+  fold_thr = 1,
+  pvalue_thr = 0.01,
+  num_random = 10000
+)
 ```
-ex_tfidf <- ctfidf(data_matrix)
-```
 
-and the corresponding cross-product vector as:
+## Data notes
 
-```
-ex_cp <- crossprod_matrix(ex_tfidf)
-```
+Harmonizome CMap/LINCS signatures are **ternary** (−1 / 0 / +1) encoded as discrete gene-direction features. Query signatures should use **binary direction** after FC/p-value gating — not continuous fold-change weights. See `inst/extdata/DATA_SOURCES.md`.
+
+## Ablation results
+
+Corpus mode comparison (6052 leave-one-out CMAP queries): summaries in `inst/extdata/ablation_summary.tsv` and `ablation_results/ablation_report.md`.
+
+## Citation
+
+Camacho et al., DRUID — Drug Indication Discoverer.

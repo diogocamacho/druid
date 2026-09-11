@@ -19,6 +19,7 @@
 #' @param batch_size Random queries per matrix multiply. Defaults to 1000.
 #' @param n_cores Number of fork workers for batch parallelism. Defaults to 1.
 #' @return Numeric vector of empirical probabilities (one per drug).
+#' @keywords internal
 random_probability <- function(similarity_results,
                                gs_size,
                                num_sets,

@@ -2,25 +2,47 @@
 % Please edit documentation in R/random_probability.R
 \name{random_probability}
 \alias{random_probability}
-\title{Random probability}
+\title{Random probability (empirical null for cosine similarity)}
 \usage{
-random_probability(similarity_results, gs_size, num_sets, target_tfidf,
-  tfidf_crossprod_mat)
+random_probability(
+  similarity_results,
+  gs_size,
+  num_sets,
+  target_tfidf,
+  tfidf_crossprod_mat,
+  batch_size = 1000L,
+  n_cores = 1L
+)
 }
 \arguments{
-\item{similarity_results}{Vector of cosine similarities}
+\item{similarity_results}{Numeric vector of observed cosine similarities
+(one per drug / row of \code{target_tfidf}).}
 
-\item{gs_size}{Size of the query set}
+\item{gs_size}{Size of the query set (number of active features).}
 
-\item{num_sets}{Number of random sets to generate}
+\item{num_sets}{Number of random sets to generate.}
 
-\item{target_tfidf}{Pathway tf-idf matrix.}
+\item{target_tfidf}{Drug x feature weight matrix.}
 
-\item{tfidf_crossprod_mat}{Cross-product matrix for pathway tf-idf.}
+\item{tfidf_crossprod_mat}{Row squared-norms of \code{target_tfidf}.}
+
+\item{batch_size}{Random queries per matrix multiply. Defaults to 1000.}
+
+\item{n_cores}{Number of fork workers for batch parallelism. Defaults to 1.}
 }
 \value{
-A vector of random probabilities for each pathway given the gene set size.
+Numeric vector of empirical probabilities (one per drug).
 }
 \description{
-This function computes the cosine similarity between the set of randomized gene sets and the pathway tf-idf matrix. It calls the cosine_similarity function and returns the probability of a given cosine similarity being random.
+For each drug profile, estimates the fraction of random binary query vectors
+(same size as the real query) whose cosine similarity exceeds the observed
+similarity.
 }
+\details{
+Implementation notes:
+- Random queries are evaluated in batches via one sparse matrix multiply
+  per batch (avoids per-draw R loop + \code{rbind} of indicator matrices).
+- Optional multicore batching via \code{parallel::mclapply} when
+  \code{n_cores > 1} (fork backend; ignored on Windows).
+}
+\keyword{internal}

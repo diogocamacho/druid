@@ -2,6 +2,7 @@
 #'
 #' @param selection Integer 1-6, or character name (cmap, lincs, ...), or "all"
 #' @return list(id=, name=)
+#' @keywords internal
 normalize_dataset_selection <- function(selection) {
   name_map <- c(
     "cmap" = 1L,
@@ -36,6 +37,7 @@ normalize_dataset_selection <- function(selection) {
 #'
 #' @param selection Integer 1-5 or dataset name (not "all")
 #' @return list(name=, tfidf=, cpm=, drugs=)
+#' @keywords internal
 get_compendium_slice <- function(selection) {
   sel <- normalize_dataset_selection(selection)
   if (sel$id == 6L) stop("get_compendium_slice() does not accept 'all'; pass a single dataset.")
@@ -82,6 +84,7 @@ get_compendium_slice <- function(selection) {
 #' @param selection Dataset id or name
 #' @param tfidf_mode One of \code{geom_tf}, \code{combined}, \code{binary}, \code{drug_tfidf}
 #' @return list(name=, tfidf=, cpm=, drugs=, binary=, tfidf_mode=)
+#' @keywords internal
 prepare_druid_corpus <- function(selection,
                                  tfidf_mode = c("geom_tf", "combined", "binary", "drug_tfidf")) {
   tfidf_mode <- match.arg(tfidf_mode)

@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.github$
+^\.gitignore$
+^ablation_results/ablation_per_query\.tsv$
+^\.DS_Store$
+^\.cursor$
+^inst/scripts/bench_null\.R$
+^inst/scripts/nsclc_combined_vs_geom\.R$
+^inst/scripts/run_ablation\.R$

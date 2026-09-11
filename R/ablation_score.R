@@ -4,6 +4,7 @@
 #' @param tfidf Sparse corpus matrix
 #' @param cpm Row squared-norms of tfidf
 #' @return Numeric vector of cosine similarities (one per drug row)
+#' @keywords internal
 ablation_cosine <- function(query_vector, tfidf, cpm) {
   x2 <- as.numeric(crossprod(query_vector))
   if (x2 == 0) return(rep(0, nrow(tfidf)))
@@ -21,6 +22,7 @@ ablation_cosine <- function(query_vector, tfidf, cpm) {
 #' @param cosine Numeric cosine vector against full corpus
 #' @param ks Integer vector of top-k cutoffs
 #' @return Named list of metrics
+#' @keywords internal
 ablation_recovery_metrics <- function(query_idx, drug_names, cosine, ks = c(1, 5, 25)) {
   self_name <- drug_names[query_idx]
   keep <- seq_along(cosine) != query_idx

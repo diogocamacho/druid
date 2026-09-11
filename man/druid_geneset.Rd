@@ -4,25 +4,32 @@
 \alias{druid_geneset}
 \title{DRUID geneset}
 \usage{
-druid_geneset(dge_matrix, desired_effect = c("pos", "neg"), fold_thr,
-  pvalue_thr, entrez, gene_space)
+druid_geneset(
+  dge_matrix,
+  desired_effect = c("pos", "neg"),
+  fold_thr = 0,
+  pvalue_thr = 0.05,
+  entrez,
+  gene_space
+)
 }
 \arguments{
-\item{dge_matrix}{This is a 2 column matrix for gene expression changes, where column 1 is the gene fold change and column 2 is the corresponding p-value for the fold change. NOTE: Use log2 of the fold changes as output, for example, from `limma` or `DESeq2`.}
+\item{dge_matrix}{Nx2 matrix: column 1 log2 fold-change, column 2 p-value.}
 
-\item{desired_effect}{Desired effect for DRUID to run on: "pos" mimics query phenotype, "neg" reverts query phenotype. Defaults to "neg".}
+\item{desired_effect}{\code{"pos"} or \code{"neg"} (reversal negates FC first).}
 
-\item{fold_thr}{Threshold for the fold change to be considered. Defaults to 0 (i.e., log2(1), where fold change is not used as filter)}
+\item{fold_thr}{Absolute log2FC threshold. Defaults to 0.}
 
-\item{pvalue_thr}{Threshold for the p-value of the fold change to be considered. Defaults to 0.05.}
+\item{pvalue_thr}{P-value threshold. Defaults to 0.05.}
 
-\item{entrez}{EntrezIDs for genes in differentially expressed set. Must be same order as the input matrix.}
+\item{entrez}{Entrez IDs aligned to \code{dge_matrix} rows.}
 
-\item{gene_space}{EntrezIDs from TF.IDF matrix (column names of this matrix).}
+\item{gene_space}{Column names of the corpus matrix (gene-direction tokens).}
 }
 \value{
-A gene set to be used as input in DRUID as a Nx4 matrix.
+Integer vector of query weights (0/1) over \code{gene_space}.
 }
 \description{
-This function generates the query gene set that is to be used as input into DRUID.
+Build a binary query vector over the corpus gene-direction feature space.
 }
+\keyword{internal}

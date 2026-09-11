@@ -7,15 +7,16 @@
 cosine_similarity(query_vector, tfidf_matrix, tfidf_crossprod_mat)
 }
 \arguments{
-\item{query_vector}{A vector to compare to the tf-idf matrix. Length of vector is equal to number of columns of tf-idf matrix}
+\item{query_vector}{Numeric vector (or 1 x G matrix) of length ncol(tfidf_matrix)}
 
-\item{tfidf_matrix}{Sparse tf-idf matrix (computed from \code{\link{ctfidf}})}
+\item{tfidf_matrix}{Sparse (or dense) drug x feature matrix}
 
-\item{tfidf_crossprod_mat}{The cross-product matrix for the tf-idf matrix (computed with \code{\link{crossprod_matrix}})}
+\item{tfidf_crossprod_mat}{Row squared-norms of \code{tfidf_matrix}}
 }
 \value{
-Cosine similarity between query vector and each *row* in tf-idf matrix
+Numeric vector of cosine similarities (one per row)
 }
 \description{
-Returns the cosine similarity between 2 vectors
+Cosine similarity between a query vector and each *row* of a TF-IDF matrix.
 }
+\keyword{internal}

@@ -7,19 +7,18 @@
 druid_score(similarity_results, random_probabilities, num_random)
 }
 \arguments{
-\item{similarity_results}{Vector of cosine similarities}
+\item{similarity_results}{Vector of cosine similarities (one per drug).}
 
-\item{gs_size}{Size of the query set}
+\item{random_probabilities}{Empirical null probabilities from
+\code{\link{random_probability}}.}
 
-\item{num_sets}{Number of random sets to generate}
-
-\item{target_tfidf}{Drug tf-idf matrix.}
-
-\item{tfidf_crossprod_mat}{Cross-product matrix for drug tf-idf.}
+\item{num_random}{Number of random draws used for the null (for p=0 floor).}
 }
 \value{
-A vector of random probabilities for each drug given the gene set size.
+Numeric vector of DRUID scores.
 }
 \description{
-This function computes the DRUID score for a given query vector. The DRUID score is dependent on the cosine similarity value as well as the random probability for any given drug against the query vector.
+Composite score from normalized cosine similarity and empirical null
+probability.
 }
+\keyword{internal}

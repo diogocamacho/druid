@@ -18,6 +18,7 @@
 #' @param min_matches Minimum feature overlaps to report. Defaults to 3.
 #' @param n_cores Cores for the empirical null (fork). Defaults to 1.
 #' @return A tibble sorted by decreasing DRUID score.
+#' @export
 concoct <- function(dge_matrix,
                     num_random = 1000,
                     druid_direction = c("neg", "pos"),

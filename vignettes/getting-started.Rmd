@@ -1,0 +1,72 @@
+---
+title: "Getting started with DRUID"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with DRUID}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Overview
+
+DRUID scores drugs against a differential expression signature using:
+
+1. A **corpus** of drug transcriptional profiles (gene-direction tokens)
+2. **TF-IDF weighting** (default: geometric mean of dual views)
+3. **Cosine similarity** between query and each drug profile
+4. An **empirical null** and composite **DRUID score**
+
+## Minimal example (bundled CMAP)
+
+```{r}
+library(DRUID)
+
+# Synthetic illustration — replace with real limma/DESeq2 output
+entrez <- c("7157", "1956", "5290", "207")
+dge_matrix <- cbind(
+  c(2.1, -1.5, 1.8, -2.3),   # log2FC
+  c(0.001, 0.01, 0.002, 0.005) # p-value
+)
+
+res <- concoct(
+  dge_matrix = dge_matrix,
+  entrez = entrez,
+  dataset = "cmap",
+  tfidf_mode = "geom_tf",
+  druid_direction = "neg",
+  fold_thr = 0,
+  pvalue_thr = 0.05,
+  num_random = 500
+)
+
+head(res[, c("drug_name", "cell_line", "number_matches", "druid_score")])
+```
+
+## Corpus modes
+
+- `geom_tf` — recommended; geometric mean of drug- and gene-as-document TF-IDF
+- `combined` — historical Hadamard product
+- `binary` — unweighted overlap
+- `drug_tfidf` — single-view drug TF-IDF
+
+## Performance
+
+For large `num_random` (e.g. 10,000), use parallel null evaluation:
+
+```{r}
+res <- concoct(..., num_random = 10000, n_cores = 4)
+```
+
+## Further reading
+
+- `README.md` — API reference
+- `inst/extdata/DATA_SOURCES.md` — data provenance and versioning
+- `ablation_results/ablation_report.md` — corpus mode comparison

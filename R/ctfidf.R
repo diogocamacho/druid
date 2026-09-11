@@ -6,12 +6,13 @@
 #'
 #' \deqn{ctfidf_{d,g} = tfidf^{(D)}_{d,g} \times tfidf^{(G)}_{g,d}}
 #'
-#' For binary one-hot input that equals
-#' \eqn{(1/(s_d df_g)) \log(D/df_g) \log(T/s_d)}.
-#' This is not the matrix product \eqn{tfidf(dtm) %*% t(tfidf(dtm))}.
+#' For binary one-hot input that equals the closed form
+#' (1/(s_d df_g)) * log(D/df_g) * log(T/s_d).
+#' This is not the matrix product tfidf(dtm) %*% t(tfidf(dtm)).
 #'
 #' @param data_matrix Sparse document-term matrix (condition by gene matrix), named
 #' @return A sparse matrix with the computed combined tf-idf
+#' @export
 ctfidf <- function(data_matrix) {
   combined_tfidf(data_matrix)
 }

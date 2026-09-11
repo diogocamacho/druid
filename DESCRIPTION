@@ -1,21 +1,29 @@
 Package: DRUID
 Title: Drug Indication Discoverer
-Version:1.1.1
+Version: 1.2.0
 Authors@R: person("Diogo", "Camacho", email = "diogo.camacho@wyss.harvard.edu", role = c("aut", "cre"))
-Description: Identification of optimal indication for a given drug.  The algorithm takes in a drug expression profile of interest and outputs a ranked list of potential indications for that drug.
+Description: Rank compounds whose transcriptional signatures mimic or revert a
+    query gene expression profile. Uses dual TF-IDF corpus weighting (default
+    geometric mean), cosine similarity, and an empirical null model.
 License: GPL-3 + file LICENSE
-biocViews:
-Depends: R (>= 3.4.0), 
-  tidytext,
-  dplyr,
-  tibble,
-  Matrix,
-  AnnotationDbi,
-  org.Hs.eg.db
+URL: https://github.com/diogocamacho/druid
+BugReports: https://github.com/diogocamacho/druid/issues
+Depends: R (>= 4.0.0)
+Imports:
+    dplyr,
+    Matrix,
+    tibble
+Suggests:
+    AnnotationDbi,
+    cauldron,
+    knitr,
+    limma,
+    org.Hs.eg.db,
+    rmarkdown,
+    testthat (>= 3.0.0)
 Remotes: github::diogocamacho/cauldron
 Encoding: UTF-8
 LazyData: true
-Suggests: knitr,
-    rmarkdown
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+Config/testthat/edition: 3

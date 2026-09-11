@@ -6,6 +6,7 @@
 #'
 #' @param weighted_matrix Sparse matrix (e.g. existing ctfidf)
 #' @return Binary dgCMatrix with the same dimnames
+#' @keywords internal
 binary_from_weighted <- function(weighted_matrix) {
   B <- weighted_matrix
   B@x <- rep(1, length(B@x))
@@ -18,6 +19,7 @@ binary_from_weighted <- function(weighted_matrix) {
 #'
 #' @param data_matrix Binary (or count) sparse drug x feature matrix
 #' @return Sparse TF-IDF matrix
+#' @keywords internal
 drug_tfidf <- function(data_matrix) {
   D <- nrow(data_matrix)
   s <- Matrix::rowSums(data_matrix)
@@ -38,6 +40,7 @@ drug_tfidf <- function(data_matrix) {
 #'
 #' @param data_matrix Binary sparse drug x feature matrix
 #' @return Sparse TF-IDF matrix (same dims as data_matrix)
+#' @keywords internal
 gene_tfidf <- function(data_matrix) {
   Tm <- ncol(data_matrix)
   s <- as.numeric(Matrix::rowSums(data_matrix))
@@ -62,6 +65,7 @@ gene_tfidf <- function(data_matrix) {
 #'
 #' @param data_matrix Binary (or count) sparse drug x feature matrix
 #' @return Sparse combined TF-IDF matrix
+#' @keywords internal
 combined_tfidf <- function(data_matrix) {
   drug_tfidf(data_matrix) * gene_tfidf(data_matrix)
 }
@@ -72,6 +76,7 @@ combined_tfidf <- function(data_matrix) {
 #'
 #' @param data_matrix Binary sparse drug x feature matrix
 #' @return Sparse matrix
+#' @keywords internal
 geom_mean_tfidf <- function(data_matrix) {
   Wd <- drug_tfidf(data_matrix)
   Wg <- gene_tfidf(data_matrix)
@@ -87,6 +92,7 @@ geom_mean_tfidf <- function(data_matrix) {
 #'
 #' @param data_matrix Binary sparse drug x feature matrix
 #' @return Sparse matrix
+#' @keywords internal
 arith_mean_tfidf <- function(data_matrix) {
   0.5 * (drug_tfidf(data_matrix) + gene_tfidf(data_matrix))
 }
@@ -99,6 +105,7 @@ arith_mean_tfidf <- function(data_matrix) {
 #'
 #' @param W Sparse numeric matrix
 #' @return Sparse matrix of row-contextual z-scores on original support
+#' @keywords internal
 row_zscore_sparse <- function(W) {
   sm <- Matrix::summary(W)
   # per-row mean and sd of nonzero entries
@@ -125,6 +132,7 @@ row_zscore_sparse <- function(W) {
 #'
 #' @param W Sparse numeric matrix
 #' @return Sparse matrix of column-contextual z-scores on original support
+#' @keywords internal
 col_zscore_sparse <- function(W) {
   sm <- Matrix::summary(W)
   cs <- as.numeric(Matrix::colSums(W))
@@ -147,6 +155,7 @@ col_zscore_sparse <- function(W) {
 #'
 #' @param W Sparse numeric matrix
 #' @return Sparse matrix with globally z-scored nonzero values
+#' @keywords internal
 global_zscore_sparse <- function(W) {
   x <- W@x
   mu <- mean(x)
@@ -164,6 +173,7 @@ global_zscore_sparse <- function(W) {
 #'
 #' @param data_matrix Binary sparse drug x feature matrix
 #' @return Sparse Stouffer-combined score matrix
+#' @keywords internal
 stouffer_tfidf <- function(data_matrix) {
   z_d <- row_zscore_sparse(drug_tfidf(data_matrix))
   z_g <- col_zscore_sparse(gene_tfidf(data_matrix))
@@ -176,6 +186,7 @@ stouffer_tfidf <- function(data_matrix) {
 #'
 #' @param data_matrix Binary sparse drug x feature matrix
 #' @return Sparse matrix
+#' @keywords internal
 stouffer_global_tfidf <- function(data_matrix) {
   z_d <- global_zscore_sparse(drug_tfidf(data_matrix))
   z_g <- global_zscore_sparse(gene_tfidf(data_matrix))
@@ -187,6 +198,7 @@ stouffer_global_tfidf <- function(data_matrix) {
 #' @param data_matrix Binary sparse matrix (or weighted matrix whose support is used)
 #' @param from_weighted If TRUE, treat data_matrix as weighted and binarize first
 #' @return Named list of list(tfidf=, cpm=) per mode
+#' @keywords internal
 build_corpus_modes <- function(data_matrix, from_weighted = FALSE) {
   B <- if (from_weighted) binary_from_weighted(data_matrix) else data_matrix
   modes <- list(
